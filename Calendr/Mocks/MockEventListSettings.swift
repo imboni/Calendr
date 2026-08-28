@@ -21,10 +21,14 @@ class MockEventListSettings: MockEventSettings, EventListSettings {
     let toggleEventListSummary: AnyObserver<Bool>
     let showEventListSummary: Observable<Bool>
 
-    init(showPastEvents: Bool = true, showOverdueReminders: Bool = true, showAllDayEvents: Bool = true, showAllDayDetails: Bool = true) {
+    let toggleLunarCalendar: AnyObserver<Bool>
+    let showLunarCalendar: Observable<Bool>
+
+    init(showPastEvents: Bool = true, showOverdueReminders: Bool = true, showAllDayEvents: Bool = true, showAllDayDetails: Bool = true, showLunarCalendar: Bool = false) {
         (self.showPastEvents, togglePastEvents) = BehaviorSubject.pipe(value: showPastEvents)
         (self.showOverdueReminders, toggleOverdueReminders) = BehaviorSubject.pipe(value: showOverdueReminders)
         (showEventListSummary, toggleEventListSummary) = BehaviorSubject.pipe(value: true)
+        (self.showLunarCalendar, toggleLunarCalendar) = BehaviorSubject.pipe(value: showLunarCalendar)
 
         super.init(showAllDayEvents: showAllDayEvents, showAllDayDetails: showAllDayDetails)
     }

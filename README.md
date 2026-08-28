@@ -1,19 +1,28 @@
-# Calendr
+# Calendr 中国版
 
-[![install](https://img.shields.io/badge/How_to_install-gray?label=📥)](https://github.com/pakerwreah/Calendr/issues/217)
-[![homebrew](https://img.shields.io/badge/Homebrew_cask-gray?logo=homebrew&logoColor=ffdd00)](https://github.com/pakerwreah/homebrew-calendr)
-[![release](https://img.shields.io/github/v/release/pakerwreah/Calendr?label=Latest%20release)](https://github.com/pakerwreah/Calendr/releases/latest)
-[![downloads-latest](https://img.shields.io/github/downloads/pakerwreah/Calendr/latest/Calendr.zip?displayAssetName=false&logo=github&label=Downloads)](https://github.com/pakerwreah/Calendr/releases/latest)
-[![downloads-all](https://img.shields.io/github/downloads/pakerwreah/Calendr/Calendr.zip?displayAssetName=false&logo=github&label=All%20downloads)](https://github.com/pakerwreah/Calendr/releases/latest)
+这是基于 [pakerwreah/Calendr](https://github.com/pakerwreah/Calendr) 完善的**中国版**，由 [Boni](https://github.com/imboni) 维护。
 
-[![ci-github](https://github.com/pakerwreah/Calendr/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/pakerwreah/Calendr/actions)
-[![ci-bitrise](https://img.shields.io/bitrise/9fa2e96dc9458fbb?label=Bitrise&logo=bitrise&token=iAJgn0FMJzmMP4ALCi0KdQ)](https://app.bitrise.io/app/9fa2e96dc9458fbb)
-[![sentry](https://img.shields.io/badge/Sentry-purple?logo=sentry&logoColor=white)](https://github.com/pakerwreah/Calendr/issues)
-[![linkedin](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/carlosenumo)
-[![buy-me-a-coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/pakerwreah)
-[![reddit](https://img.shields.io/badge/Follow%20r%2FCalendr--black?style=social&logo=reddit)](https://www.reddit.com/r/Calendr)
+它不是原作者的官方项目，也没有向原仓库提交这些改动。菜单栏日历的主体功能来自原作；本仓库在此基础上补了农历、中国大陆节假日和二十四节气。
+
+**原作者：** [Carlos Enumo (pakerwreah)](https://github.com/pakerwreah)  
+**原项目：** https://github.com/pakerwreah/Calendr  
+**中国版：** https://github.com/imboni/Calendr
+
+原作是 MIT 许可。本仓库保留原版权声明；中国版改动的版权归 Boni。支持原作者请看 [原项目](https://github.com/pakerwreah/Calendr) 和 [Buy Me a Coffee](https://buymeacoffee.com/pakerwreah)。
+
+## 中国版增加了什么
+
+- 日历格子显示农历（初一显示月份名）
+- 格子上可显示中国大陆节假日名称，法定休息日有浅色底
+- 二十四节气按北京时间计算，只标在当天
+- 菜单栏日期可附带农历
+- 设置里可分别开关农历、节假日、节气；全关时格子回到原作布局
+
+这些选项默认打开，可在设置里关掉。
 
 ## Menu bar calendar for macOS
+
+Original app by [pakerwreah](https://github.com/pakerwreah/Calendr):
 
 <table>
 <tr>
@@ -24,9 +33,6 @@
   </td>
 </tr>
 </table>
-
-Hey 🙋🏻‍♂️ if you like my app, please consider buying me a coffee to keep me motivated.<br>
-<sub>(and maybe update the screenshot once in a while)</sub>
 
 ## Natural-language event entry
 
@@ -54,7 +60,7 @@ The feature can be enabled or disabled in Settings and defaults to enabled for E
 </tr>
 </table>
 
-## Hidden features 🔍
+## Hidden features
 
 ### Display multiple timezones in the menu bar
 - Format
@@ -62,7 +68,10 @@ The feature can be enabled or disabled in Settings and defaults to enabled for E
 - Result
 `15:00 | 17:00 LT | 12:00 BR`
 
-### Open date with a URL scheme https://github.com/pakerwreah/Calendr/issues/314
+### Open date with a URL scheme
+
+See the original write-up: https://github.com/pakerwreah/Calendr/issues/314
+
 date|encoded
 --|--
 `december`|`calendr://date/december` (defaults to current date and year)

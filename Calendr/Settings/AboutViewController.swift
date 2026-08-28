@@ -11,7 +11,8 @@ import RxSwift
 class AboutViewController: NSViewController, SettingsUI {
 
     private let quitButton: NSButton
-    private let linkView: NSTextView
+    private let originalLinkView: NSTextView
+    private let editionLinkView: NSTextView
     private let newVersionButton: NSButton
     private let autoCheckForUpdatesCheckbox: Checkbox
     private let launchServices: LaunchServiceProviding
@@ -26,15 +27,8 @@ class AboutViewController: NSViewController, SettingsUI {
         self.launchServices = launchServices
         self.viewModel = settingsViewModel
 
-        linkView = NSTextView()
-        linkView.string = "https://github.com/pakerwreah"
-        linkView.backgroundColor = .clear
-        linkView.linkTextAttributes?[.underlineColor] = NSColor.clear
-        linkView.isAutomaticLinkDetectionEnabled = true
-        linkView.checkTextInDocument(nil)
-        linkView.isEditable = false
-        linkView.alignment = .center
-        linkView.height(equalTo: 15)
+        originalLinkView = Self.makeLinkView("https://github.com/pakerwreah/Calendr")
+        editionLinkView = Self.makeLinkView("https://github.com/imboni/Calendr")
 
         newVersionButton = NSButton()
 
@@ -57,6 +51,19 @@ class AboutViewController: NSViewController, SettingsUI {
         setUpBindings()
     }
 
+    private static func makeLinkView(_ url: String) -> NSTextView {
+        let view = NSTextView()
+        view.string = url
+        view.backgroundColor = .clear
+        view.linkTextAttributes?[.underlineColor] = NSColor.clear
+        view.isAutomaticLinkDetectionEnabled = true
+        view.checkTextInDocument(nil)
+        view.isEditable = false
+        view.alignment = .center
+        view.height(equalTo: 15)
+        return view
+    }
+
     @objc func terminate() {
         launchServices.terminate()
     }
@@ -66,7 +73,8 @@ class AboutViewController: NSViewController, SettingsUI {
         super.viewDidLoad()
 
         let stackView = NSStackView(views: [
-            Label(text: "Calendr", font: .systemFont(ofSize: 16, weight: .semibold), align: .center),
+            Label(text: "Calendr 中国版", font: .systemFont(ofSize: 16, weight: .semibold), align: .center),
+            Label(text: "基于 pakerwreah/Calendr 完善", font: .systemFont(ofSize: 12), color: .secondaryLabelColor, align: .center),
             .spacer(height: 0),
             Label(text: BuildConfig.appVersion, font: .systemFont(ofSize: 13), align: .center),
             Label(text: "\(BuildConfig.date) - \(BuildConfig.time)", color: .secondaryLabelColor, align: .center),
@@ -74,7 +82,9 @@ class AboutViewController: NSViewController, SettingsUI {
             Label(text: #"¯\_(ツ)_/¯"#, font: .systemFont(ofSize: 16), align: .center),
             .spacer(height: 4),
             Label(text: "© 2020 - \(BuildConfig.date.suffix(4)) Carlos Enumo", align: .center),
-            linkView,
+            originalLinkView,
+            Label(text: "中国版 © 2026 Boni", align: .center),
+            editionLinkView,
             .spacer(height: Constants.sectionSpacing),
             newVersionButton,
             .spacer(height: 0),

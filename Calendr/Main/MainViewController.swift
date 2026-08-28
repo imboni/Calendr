@@ -30,6 +30,7 @@ class MainViewController: NSViewController {
     private let nextReminderView: NextEventView
     private let calendarView: CalendarView
     private let eventListView: EventListView
+    private let yearLabel: Label
     private let titleLabel: Label
     private let searchInput = NSSearchField()
     private let searchInputSuggestionView = SearchSuggestionView()
@@ -178,6 +179,7 @@ class MainViewController: NSViewController {
             doubleClickObserver: mainViewModel.openCalendarDateObserver
         )
 
+        yearLabel = Label(scaling: calendarViewModel.textScaling)
         titleLabel = Label(scaling: calendarViewModel.textScaling)
 
         let eventListEventsObservable = calendarViewModel.eventListObservable
@@ -285,7 +287,8 @@ class MainViewController: NSViewController {
             container.addSubview(view)
 
             view.rx.observe(\.isHidden).bind(to: container.rx.isHidden).disposed(by: disposeBag)
-            view.edges(equalTo: container, margins: .init(horizontal: Constants.MainStackView.margin))
+            let margin = view === calendarView ? Constants.MainStackView.calendarMargin : Constants.MainStackView.margin
+            view.edges(equalTo: container, margins: .init(horizontal: margin))
 
             mainStackView.addArrangedSubview(container)
         }
@@ -361,6 +364,21 @@ class MainViewController: NSViewController {
 
         calendarBtn.rx.tap
             .bind(to: mainViewModel.openCalendarObserver)
+            .disposed(by: disposeBag)
+
+        settingsViewModel.showLunarCalendar
+            .bind { [titleLabel] showLunar in
+                titleLabel.font = .systemFont(ofSize: showLunar ? 12 : 14, weight: .medium)
+            }
+            .disposed(by: disposeBag)
+
+        calendarViewModel.yearTitle
+            .bind(to: yearLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        calendarViewModel.yearTitle
+            .map(\.isEmpty)
+            .bind(to: yearLabel.rx.isHidden)
             .disposed(by: disposeBag)
 
         calendarViewModel.title
@@ -498,7 +516,7 @@ class MainViewController: NSViewController {
     }
 
     private func openReleasePage() {
-        workspace.open(URL(string: "https://github.com/pakerwreah/Calendr/releases/latest")!)
+        workspace.open(URL(string: "https://github.com/imboni/Calendr/releases/latest")!)
     }
 
     private func makeCalendarListMenu() -> NSMenu {
@@ -1025,7 +1043,9 @@ class MainViewController: NSViewController {
 
     private func makeHeader() -> NSView {
 
-        titleLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        yearLabel.font = .systemFont(ofSize: 11, weight: .regular)
+        yearLabel.textColor = .secondaryLabelColor
+
         titleLabel.textColor = .headerTextColor
 
         [prevBtn, resetBtn, nextBtn].forEach { $0.size(equalTo: 22) }
@@ -1039,10 +1059,15 @@ class MainViewController: NSViewController {
         nextBtn.image = Icons.Calendar.next
         nextBtn.toolTip = Strings.Tooltips.Navigation.nextMonth
 
-        return NSStackView(views: [
-            .spacer(width: 5), titleLabel, .spacer, prevBtn, resetBtn, nextBtn
+        let dateRow = NSStackView(views: [
+            titleLabel, .spacer, prevBtn, resetBtn, nextBtn
         ])
         .with(spacing: 0)
+
+        return NSStackView(views: [yearLabel, dateRow])
+            .with(orientation: .vertical)
+            .with(alignment: .width)
+            .with(spacing: 1)
     }
 
     private func makeToolBar() -> NSView {
@@ -1079,6 +1104,7 @@ private enum Constants {
 
     enum MainStackView {
         static let margin: CGFloat = 8
+        static let calendarMargin: CGFloat = 12
     }
 
     enum EventListView {

@@ -10,25 +10,38 @@ import Foundation
 /// Format a Gregorian date as a Chinese lunar date string.
 /// Returns the lunar day in Chinese numerals (初一、初二、etc.) or month name (正月、二月、etc.) on the first day of the lunar month.
 /// Leap months are marked with 闰 prefix.
-func chineseLunarDateString(from date: Date, calendar gregorianCalendar: Calendar) -> String? {
+struct ChineseLunarDate {
+    let text: String
+    let fullText: String
+    let isMonthStart: Bool
+}
+
+func chineseLunarDate(from date: Date, calendar gregorianCalendar: Calendar) -> ChineseLunarDate? {
     let chineseCalendar = Calendar(identifier: .chinese)
-    
+
     let components = chineseCalendar.dateComponents([.year, .month, .day, .isLeapMonth], from: date)
-    
+
     guard let month = components.month, let day = components.day else {
         return nil
     }
-    
+
     let isLeapMonth = components.isLeapMonth ?? false
-    
-    // On the first day of a lunar month, show the month name
+    let monthName = chineseMonthName(month: month, isLeapMonth: isLeapMonth)
+    let dayName = chineseDayName(day: day)
+
     if day == 1 {
-        let monthName = chineseMonthName(month: month, isLeapMonth: isLeapMonth)
-        return monthName
+        return ChineseLunarDate(text: monthName, fullText: monthName + dayName, isMonthStart: true)
     }
-    
-    // Otherwise, show the day in Chinese numerals
-    return chineseDayName(day: day)
+
+    return ChineseLunarDate(text: dayName, fullText: monthName + dayName, isMonthStart: false)
+}
+
+func chineseLunarDateString(from date: Date, calendar gregorianCalendar: Calendar) -> String? {
+    chineseLunarDate(from: date, calendar: gregorianCalendar)?.text
+}
+
+func chineseLunarFullDateString(from date: Date, calendar gregorianCalendar: Calendar) -> String? {
+    chineseLunarDate(from: date, calendar: gregorianCalendar)?.fullText
 }
 
 /// Convert a lunar day number (1-30) to Chinese numerals.

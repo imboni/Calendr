@@ -70,7 +70,9 @@ import Testing
             events: [],
             dotsStyle: .none,
             calendar: calendar,
-            showLunarCalendar: true
+            showLunarCalendar: true,
+            showMainlandHolidays: false,
+            showSolarTerms: false
         )
         #expect(vm1.lunarText == "正月")
         
@@ -84,7 +86,9 @@ import Testing
             events: [],
             dotsStyle: .none,
             calendar: calendar,
-            showLunarCalendar: false
+            showLunarCalendar: false,
+            showMainlandHolidays: false,
+            showSolarTerms: false
         )
         #expect(vm2.lunarText == nil)
     }
@@ -101,7 +105,9 @@ import Testing
             events: [],
             dotsStyle: .none,
             calendar: calendar,
-            showLunarCalendar: true
+            showLunarCalendar: true,
+            showMainlandHolidays: false,
+            showSolarTerms: false
         )
         
         // Gregorian day should still be 17

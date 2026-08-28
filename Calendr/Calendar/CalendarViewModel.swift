@@ -14,12 +14,14 @@ class CalendarViewModel {
     let eventListObservable: Observable<DateEvents>
 
     let title: Observable<String>
+    let yearTitle: Observable<String>
     let weekCount: Observable<Int>
     let weekDays: Observable<[WeekDay]>
     let weekNumbers: Observable<[Int]?>
     let calendarScaling: Observable<Double>
     let textScaling: Observable<Double>
     let cellSize: Observable<Double>
+    let cellHeight: Observable<Double>
     let weekNumbersWidth: Observable<Double>
     let showMonthOutline: Observable<Bool>
 
@@ -38,16 +40,32 @@ class CalendarViewModel {
             .startWith(dateProvider.calendar)
             .share(replay: 1)
 
-        let dateFormatterObservable = calendarUpdated
-            .map { calendar in
-                DateFormatter(format: "MMM yyyy", calendar: calendar).with(context: .beginningOfSentence)
-            }
-            .share(replay: 1)
-
-        title = Observable.combineLatest(
-            dateFormatterObservable, dateObservable
+        let lunarTitleParts = Observable.combineLatest(
+            dateObservable, calendarUpdated, settings.showLunarCalendar
         )
-        .map { $0.string(from: $1) }
+        .share(replay: 1)
+
+        title = lunarTitleParts
+        .map { date, calendar, showLunar -> String in
+            if showLunar {
+                let monthDay = DateFormatter(format: "M月d日", calendar: calendar).string(from: date)
+                if let lunar = chineseLunarFullDateString(from: date, calendar: calendar), !lunar.isEmpty {
+                    return monthDay + " " + lunar
+                }
+                return monthDay
+            }
+            return DateFormatter(format: "MMM yyyy", calendar: calendar)
+                .with(context: .beginningOfSentence)
+                .string(from: date)
+        }
+        .distinctUntilChanged()
+        .share(replay: 1)
+
+        yearTitle = lunarTitleParts
+        .map { date, calendar, showLunar -> String in
+            guard showLunar else { return "" }
+            return DateFormatter(format: "yyyy年", calendar: calendar).string(from: date)
+        }
         .distinctUntilChanged()
         .share(replay: 1)
 
@@ -85,9 +103,11 @@ class CalendarViewModel {
                 dateRangeObservable,
                 calendarUpdated,
                 settings.eventDotsStyle,
-                settings.showLunarCalendar
+                settings.showLunarCalendar,
+                settings.showMainlandHolidays,
+                settings.showSolarTerms
             )
-            .map { weeksCount, month, calendar, dotsStyle, showLunarCalendar -> [CalendarCellViewModel] in
+            .map { weeksCount, month, calendar, dotsStyle, showLunar, showHolidays, showTerms -> [CalendarCellViewModel] in
 
                 let monthStartWeekDay = calendar.component(.weekday, from: month.start)
 
@@ -110,7 +130,9 @@ class CalendarViewModel {
                         events: [],
                         dotsStyle: dotsStyle,
                         calendar: calendar,
-                        showLunarCalendar: showLunarCalendar
+                        showLunarCalendar: showLunar,
+                        showMainlandHolidays: showHolidays,
+                        showSolarTerms: showTerms
                     )
                 }
             }
@@ -302,12 +324,28 @@ class CalendarViewModel {
             .map(*)
             .share(replay: 1)
 
+        let usesSecondaryLine = Observable.combineLatest(
+            settings.showLunarCalendar,
+            settings.showMainlandHolidays,
+            settings.showSolarTerms
+        )
+        .map { $0 || $1 || $2 }
+        .share(replay: 1)
+
         cellSize = Observable
-            .combineLatest(calendarScaling, settings.showLunarCalendar)
-            .map { scaling, showLunar in
-                let baseSize = Constants.cellSize * scaling + 10 * (scaling - 1)
-                let lunarExtra = showLunar ? Constants.lunarCellExtra * scaling : 0
-                return baseSize + lunarExtra
+            .combineLatest(calendarScaling, usesSecondaryLine)
+            .map { scale, expanded -> Double in
+                let base = Constants.cellSize * scale + 10 * (scale - 1)
+                return expanded ? base + Constants.lunarCellWidthExtra * scale : base
+            }
+            .distinctUntilChanged()
+            .share(replay: 1)
+
+        cellHeight = Observable
+            .combineLatest(calendarScaling, usesSecondaryLine)
+            .map { scale, expanded -> Double in
+                let base = Constants.cellSize * scale + 10 * (scale - 1)
+                return expanded ? base + Constants.lunarCellExtra * scale : base
             }
             .distinctUntilChanged()
             .share(replay: 1)
@@ -372,7 +410,9 @@ private extension CalendarCellViewModel {
             events: events ?? self.events,
             dotsStyle: dotsStyle,
             calendar: calendar ?? self.calendar,
-            showLunarCalendar: showLunarCalendar
+            showLunarCalendar: showLunarCalendar,
+            showMainlandHolidays: showMainlandHolidays,
+            showSolarTerms: showSolarTerms
         )
     }
 }
@@ -380,7 +420,8 @@ private extension CalendarCellViewModel {
 private enum Constants {
 
     static let cellSize: CGFloat = 25
-    static let lunarCellExtra: CGFloat = 12
+    static let lunarCellWidthExtra: CGFloat = 6
+    static let lunarCellExtra: CGFloat = 13
     static let weekNumberCellRatio: CGFloat = 0.85
     static let maxSearchResults: Int = 12
 }

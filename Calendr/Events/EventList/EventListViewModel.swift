@@ -57,6 +57,7 @@ class EventListViewModel {
         let showPastEvents: Bool
         let showOverdueReminders: Bool
         let isTodaySelected: Bool
+        let showLunarCalendar: Bool
     }
 
     private struct EventListGroups {
@@ -162,9 +163,10 @@ class EventListViewModel {
             settings.showPastEvents,
             settings.showOverdueReminders,
             settings.showAllDayEvents,
+            settings.showLunarCalendar,
             isShowingDetailsModal
         )
-        .compactMap { dateEvents, showPast, showOverdue, showAllDay, isShowingDetailsModal -> EventListProps? in
+        .compactMap { dateEvents, showPast, showOverdue, showAllDay, showLunar, isShowingDetailsModal -> EventListProps? in
             guard !isShowingDetailsModal else { return nil }
 
             let isTodaySelected = dateProvider.calendar.isDate(dateEvents.date, inSameDayAs: dateProvider.now)
@@ -175,7 +177,8 @@ class EventListViewModel {
                 date: dateEvents.date,
                 showPastEvents: showPast,
                 showOverdueReminders: showOverdue,
-                isTodaySelected: isTodaySelected
+                isTodaySelected: isTodaySelected,
+                showLunarCalendar: showLunar
             )
         }
         .distinctUntilChanged()
@@ -255,6 +258,13 @@ class EventListViewModel {
         )
     }
 
+    private func dateSectionTitle(_ title: String, date: Date, showLunar: Bool) -> String {
+        guard showLunar, let lunar = chineseLunarDateString(from: date, calendar: dateProvider.calendar) else {
+            return title
+        }
+        return "\(title) \(lunar)"
+    }
+
     private func isOverdue(_ event: EventModel, _ isTodaySelected: Bool) -> Bool {
         isTodaySelected &&
         event.type == .reminder(completed: false) &&
@@ -281,7 +291,7 @@ class EventListViewModel {
                     let label = props.isTodaySelected
                         ? relativeFormatter.localizedString(for: curr.start, relativeTo: dateProvider.now).ucfirst
                         : dateFormatter.string(from: curr.start)
-                    return [.section(label), eventItem]
+                    return [.section(dateSectionTitle(label, date: curr.start, showLunar: props.showLunarCalendar)), eventItem]
                 }
 
                 return [eventItem]
@@ -331,7 +341,7 @@ class EventListViewModel {
 
                     let title = isToday ? Strings.Formatter.Date.today : dateFormatter.string(from: curr.start)
 
-                    return [.section(title), eventItem]
+                    return [.section(dateSectionTitle(title, date: curr.start, showLunar: props.showLunarCalendar && !isToday)), eventItem]
                 }
 
                 guard prev.end.distance(to: curr.start) >= 60 else {

@@ -22,6 +22,8 @@ struct CalendarCellViewModel: Equatable {
     let dotsStyle: EventDotsStyle
     let calendar: Calendar
     let showLunarCalendar: Bool
+    let showMainlandHolidays: Bool
+    let showSolarTerms: Bool
 }
 
 extension CalendarCellViewModel {
@@ -30,9 +32,32 @@ extension CalendarCellViewModel {
         "\(calendar.component(.day, from: date))"
     }
 
-    var lunarText: String? {
+    var lunarDate: ChineseLunarDate? {
         guard showLunarCalendar else { return nil }
-        return chineseLunarDateString(from: date, calendar: calendar)
+        return chineseLunarDate(from: date, calendar: calendar)
+    }
+
+    var usesSecondaryLine: Bool { showLunarCalendar || showMainlandHolidays || showSolarTerms }
+
+    var holidayName: String? {
+        guard showMainlandHolidays else { return nil }
+        return chineseMainlandHolidayName(from: events, date: date, calendar: calendar)
+    }
+
+    var solarTermText: String? {
+        guard showSolarTerms else { return nil }
+        return solarTermName(on: date, calendar: calendar)
+    }
+
+    var isSolarTermDay: Bool { holidayName == nil && solarTermText != nil }
+
+    var lunarText: String? { holidayName ?? solarTermText ?? lunarDate?.text }
+
+    var isLunarMonthStart: Bool { holidayName != nil || lunarDate?.isMonthStart == true }
+
+    var isStatutoryRestDay: Bool {
+        guard showMainlandHolidays else { return false }
+        return isChineseMainlandRestDay(from: events, date: date, calendar: calendar)
     }
 
     var alpha: CGFloat {

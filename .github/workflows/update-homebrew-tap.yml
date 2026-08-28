@@ -12,6 +12,7 @@ on:
 
 jobs:
   update-cask:
+    if: github.repository_owner == 'pakerwreah'
     runs-on: ubuntu-latest
 
     steps:

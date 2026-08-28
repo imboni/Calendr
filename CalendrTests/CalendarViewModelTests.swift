@@ -154,6 +154,8 @@ class CalendarViewModelTests {
 
         var titles: [String] = []
 
+        settings.toggleLunarCalendar.onNext(false)
+
         viewModel.title.bind {
             titles.append($0)
         }

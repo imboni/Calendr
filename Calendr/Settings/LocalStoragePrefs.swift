@@ -17,6 +17,7 @@ enum Prefs {
     static let statusItemDateEnabled = "status_item_date_enabled"
     static let statusItemDateStyle = "status_item_date_style"
     static let statusItemDateFormat = "status_item_date_format"
+    static let statusItemLunarDateEnabled = "status_item_lunar_date_enabled"
     static let statusItemBackgroundStyle = "status_item_background_style"
     static let legacyStatusItemBackgroundEnabled = "status_item_background_enabled"
     static let statusItemTextScaling = "status_item_text_scaling"
@@ -53,6 +54,8 @@ enum Prefs {
     static let calendarTextScaling = "calendar_text_scaling"
     static let eventDotsStyle = "event_dots_style"
     static let showLunarCalendar = "show_lunar_calendar"
+    static let showMainlandHolidays = "show_mainland_holidays"
+    static let showSolarTerms = "show_solar_terms"
 
     // Event Details
     static let showMap = "show_map"
@@ -106,6 +109,7 @@ func registerDefaultPrefs(
         Prefs.statusItemDateEnabled: true,
         Prefs.statusItemDateStyle: StatusItemDateStyle.short.rawValue,
         Prefs.statusItemDateFormat: AppConstants.defaultCustomDateFormat,
+        Prefs.statusItemLunarDateEnabled: true,
         Prefs.statusItemBackgroundStyle: StatusItemBackgroundStyle.transparent.rawValue,
         Prefs.statusItemTextScaling: 1.2,
         Prefs.statusItemOpenOnHover: false,
@@ -140,6 +144,8 @@ func registerDefaultPrefs(
         Prefs.defaultCalendarApp: CalendarApp.calendar.rawValue,
         Prefs.calendarTextScaling: 1,
         Prefs.showLunarCalendar: true,
+        Prefs.showMainlandHolidays: true,
+        Prefs.showSolarTerms: true,
 
         // Event Details
         Prefs.showMap: true,
@@ -223,6 +229,11 @@ extension LocalStorageProvider {
     @objc dynamic var statusItemDateFormat: String {
         get { string(forKey: Prefs.statusItemDateFormat) ?? "" }
         set { set(newValue, forKey: Prefs.statusItemDateFormat) }
+    }
+
+    @objc dynamic var statusItemLunarDateEnabled: Bool {
+        get { bool(forKey: Prefs.statusItemLunarDateEnabled) }
+        set { set(newValue, forKey: Prefs.statusItemLunarDateEnabled) }
     }
 
     @objc dynamic var statusItemBackgroundStyle: String {
@@ -377,6 +388,16 @@ extension LocalStorageProvider {
     @objc dynamic var showLunarCalendar: Bool {
         get { bool(forKey: Prefs.showLunarCalendar) }
         set { set(newValue, forKey: Prefs.showLunarCalendar) }
+    }
+
+    @objc dynamic var showMainlandHolidays: Bool {
+        get { bool(forKey: Prefs.showMainlandHolidays) }
+        set { set(newValue, forKey: Prefs.showMainlandHolidays) }
+    }
+
+    @objc dynamic var showSolarTerms: Bool {
+        get { bool(forKey: Prefs.showSolarTerms) }
+        set { set(newValue, forKey: Prefs.showSolarTerms) }
     }
 
     // Event Details
