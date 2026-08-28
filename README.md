@@ -1,83 +1,67 @@
 # Calendr 中国版
 
-这是基于 [pakerwreah/Calendr](https://github.com/pakerwreah/Calendr) 完善的**中国版**，由 [Boni](https://github.com/imboni) 维护。
+我在 [pakerwreah/Calendr](https://github.com/pakerwreah/Calendr) 的基础上维护本中国版，面向中文用户补充农历、节假日与二十四节气。本仓库并非原作者的官方发行，相关改动亦未提交至上游。
 
-它不是原作者的官方项目，也没有向原仓库提交这些改动。菜单栏日历的主体功能来自原作；本仓库在此基础上补了农历、中国大陆节假日和二十四节气。
+- **原作者：** [Carlos Enumo (pakerwreah)](https://github.com/pakerwreah)
+- **原项目：** https://github.com/pakerwreah/Calendr
+- **中国版：** https://github.com/imboni/Calendr
 
-**原作者：** [Carlos Enumo (pakerwreah)](https://github.com/pakerwreah)  
-**原项目：** https://github.com/pakerwreah/Calendr  
-**中国版：** https://github.com/imboni/Calendr
+原作以 MIT 许可证发布。本仓库保留原版权声明；中国版改动的版权归我所有。如需支持原作，请前往 [原仓库](https://github.com/pakerwreah/Calendr) 或 [Buy Me a Coffee](https://buymeacoffee.com/pakerwreah)。
 
-原作是 MIT 许可。本仓库保留原版权声明；中国版改动的版权归 Boni。支持原作者请看 [原项目](https://github.com/pakerwreah/Calendr) 和 [Buy Me a Coffee](https://buymeacoffee.com/pakerwreah)。
+## 界面
 
-## 中国版增加了什么
+<img width="360" src="resources/screenshot.png" alt="Calendr 中国版：月视图中的农历、节假日与节气" />
 
-- 日历格子显示农历（初一显示月份名）
-- 格子上可显示中国大陆节假日名称，法定休息日有浅色底
-- 二十四节气按北京时间计算，只标在当天
+## 相对原作的改动
+
+- 月视图日期格显示农历；每月初一以农历月份名标示
+- 可显示中国大陆节假日名称，法定休息日辅以浅色底纹
+- 二十四节气按北京时间计算，仅标注于当日
 - 菜单栏日期可附带农历
-- 设置里可分别开关农历、节假日、节气；全关时格子回到原作布局
+- 设置中可分别开关农历、节假日与节气；全部关闭时，格子布局与原作一致
 
-这些选项默认打开，可在设置里关掉。
+上述选项默认开启。
 
-## Menu bar calendar for macOS
+## 原作功能
 
-Original app by [pakerwreah](https://github.com/pakerwreah/Calendr):
+[Calendr](https://github.com/pakerwreah/Calendr) 是一款 macOS 菜单栏日历。以下功能来自原作。
 
-<table>
-<tr>
-  <td>
-    <img width=350 src="resources/screenshot.png" title="Calendr" />
-    <img valign='top' width=170 src='https://github.com/pakerwreah/Calendr/assets/803954/8b3ebb0f-52ad-461c-91c3-7b4d2646712e' />
-    <img valign='top' width=150 src='https://github.com/pakerwreah/Calendr/assets/803954/8e8d342d-9be5-4bad-b741-875cc407ec1a' />
-  </td>
-</tr>
-</table>
+### 自然语言新建事件
 
-## Natural-language event entry
+在标题中一并输入日期、时间、时长、全天或日历指示，Calendr 会在输入时高亮已识别内容，并同步更新事件字段；保存时这些指示会从标题中移除。
 
-Create events faster by typing the title together with optional date, time, duration, all-day, and calendar instructions. Calendr highlights recognized instructions while you type, immediately updates the event fields, and removes the instructions from the saved event title.
-
-For example:
+示例：
 
 `Pickleball with Tom next Friday from 10 to 12 /sport`
 
-- Dates: `today`, `tomorrow`, `yesterday`, `in a week`, `in 3 days`, `on Friday`, `at Friday`, `next Friday`, or `August 12`
-- Times: `at 14`, `at 2pm`, `at noon`, `tomorrow morning`, `from 10 to 12`, or `at 22 until 1`
-- Relative starts and durations: `in 2 hours`, `for 30 minutes`, `for 2 hours`, or `for 4 days`
-- All-day events: `all day` or `full day`
-- Calendars: add `/` followed by part of a calendar name, such as `/sport`, to fuzzy-match and select it
+- 日期：`today`、`tomorrow`、`yesterday`、`in a week`、`in 3 days`、`on Friday`、`next Friday`、`August 12`
+- 时间：`at 14`、`at 2pm`、`at noon`、`tomorrow morning`、`from 10 to 12`、`at 22 until 1`
+- 相对开始与时长：`in 2 hours`、`for 30 minutes`、`for 2 hours`、`for 4 days`
+- 全天：`all day`、`full day`
+- 日历：以 `/` 后接日历名称片段，如 `/sport`，进行模糊匹配
 
-English and Czech instructions are supported. The parser follows Calendr's preferred localization automatically. Unsupported localizations can still opt in to the English parser.
+目前支持英语与捷克语指示。解析器随 Calendr 的首选语言自动选择；其他语言仍可选用英语解析器。该功能可在设置中开关，英语与捷克语环境下默认开启。数字日期顺序遵循当前区域设置；标题的首个词始终保留为事件名称。
 
-The feature can be enabled or disabled in Settings and defaults to enabled for English and Czech localizations. Numeric dates follow the date order configured by the active locale, and the first word is always preserved as event title text.
+<img width="500" src="resources/smart-event-entry.png" alt="自然语言新建事件：日期、时间与日历指示高亮" />
 
-<table>
-<tr>
-  <td>
-    <img width="500" src="resources/smart-event-entry.png" alt="Natural-language event entry with highlighted date, time, and calendar instructions" />
-  </td>
-</tr>
-</table>
+### 菜单栏显示多个时区
 
-## Hidden features
+格式：
 
-### Display multiple timezones in the menu bar
-- Format
 `HH:mm | HH:mm@GMT+2 'LT' | HH:mm@GMT-3 'BR'`
-- Result
+
+结果：
+
 `15:00 | 17:00 LT | 12:00 BR`
 
-### Open date with a URL scheme
+### URL Scheme 打开指定日期
 
-See the original write-up: https://github.com/pakerwreah/Calendr/issues/314
+说明见原项目：https://github.com/pakerwreah/Calendr/issues/314
 
-date|encoded
---|--
-`december`|`calendr://date/december` (defaults to current date and year)
-`feb 10 2025`|`calendr://date/feb%2010%202025`
-`2nd of September 2025`|`calendr://date/2nd%20of%20September%202025`
+| 日期 | 编码后的 URL |
+| --- | --- |
+| `december` | `calendr://date/december`（默认当前日与年） |
+| `feb 10 2025` | `calendr://date/feb%2010%202025` |
+| `2nd of September 2025` | `calendr://date/2nd%20of%20September%202025` |
 
-It has limited support to relative dates like: `today`, `yesterday`, `tomorrow` but will not work with `next week`, `last month`, etc.
-
-That's how `NSDataDetector` works ¯\\_\(ツ\)\_/¯
+相对日期仅有限支持 `today`、`yesterday`、`tomorrow`，不支持 `next week`、`last month` 等。此限制来自 `NSDataDetector`。
