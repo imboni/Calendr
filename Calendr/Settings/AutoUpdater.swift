@@ -256,7 +256,7 @@ class AutoUpdater: AutoUpdating {
 
         statusObserver.onNext(.fetching)
 
-        let url = "https://api.github.com/repos/pakerwreah/Calendr/releases/latest"
+        let url = "https://api.github.com/repos/imboni/Calendr/releases/latest"
         let data = try await networkProvider.data(from: URL(string: url)!)
 
         struct Response: Decodable {

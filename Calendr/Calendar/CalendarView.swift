@@ -93,21 +93,34 @@ class CalendarView: NSView {
         addSubview(gridView)
 
         gridView.edges(equalTo: self)
+        setContentHuggingPriority(.required, for: .vertical)
+        setContentCompressionResistancePriority(.required, for: .vertical)
+    }
+
+    override var intrinsicContentSize: NSSize {
+        gridView?.fittingSize ?? super.intrinsicContentSize
     }
 
     private func setUpGridBindings(_ weekCount: Int) {
 
         guard let gridView else { return }
 
-        viewModel.cellSize
-            .bind { [gridView] cellSize in
-                for row in 0..<gridView.numberOfRows {
-                    gridView.row(at: row).height = cellSize
-                    /// skip week number column, because it has dynamic width
-                    for col in 1..<gridView.numberOfColumns {
-                        gridView.column(at: col).width = cellSize
-                    }
+        Observable.combineLatest(viewModel.cellSize, viewModel.cellHeight)
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self, gridView] cellWidth, cellHeight in
+                gridView.row(at: 0).height = cellWidth
+                for row in 1..<gridView.numberOfRows {
+                    gridView.row(at: row).height = cellHeight
                 }
+                /// skip week number column, because it has dynamic width
+                for col in 1..<gridView.numberOfColumns {
+                    gridView.column(at: col).width = cellWidth
+                }
+                gridView.needsLayout = true
+                gridView.layoutSubtreeIfNeeded()
+                self?.invalidateIntrinsicContentSize()
+                self?.needsLayout = true
+                self?.superview?.needsLayout = true
             }
             .disposed(by: gridDisposeBag)
 
@@ -126,10 +139,11 @@ class CalendarView: NSView {
         Observable.combineLatest(
             viewModel.weekNumbersWidth,
             viewModel.weekDays,
-            viewModel.cellSize
+            viewModel.cellSize,
+            viewModel.cellHeight
         )
         .repeat(when: rx.updateLayer)
-        .map { offset, weekDays, cellSize -> [CALayer] in
+        .map { offset, weekDays, cellWidth, cellHeight -> [CALayer] in
 
             let weekends = weekDays
                 .enumerated()
@@ -139,10 +153,10 @@ class CalendarView: NSView {
             return IndexSet(weekends).rangeView.map { range in
                 let layer = CALayer()
                 layer.frame = CGRect(
-                    x: offset + CGFloat(range.startIndex) * cellSize,
+                    x: offset + CGFloat(range.startIndex) * cellWidth,
                     y: 0,
-                    width: CGFloat(range.count) * cellSize,
-                    height: CGFloat(weekCount) * cellSize
+                    width: CGFloat(range.count) * cellWidth,
+                    height: CGFloat(weekCount) * cellHeight
                 )
                 layer.backgroundColor = Colors.weekendBackground
                 layer.cornerRadius = Constants.cornerRadius
@@ -213,16 +227,20 @@ class CalendarView: NSView {
 
         Observable.combineLatest(
             viewModel.cellViewModelsObservable,
+            viewModel.cellSize,
+            viewModel.cellHeight,
             backingScaleObservable,
             resizeObservable
         )
         .observe(on: MainScheduler.instance)
-        .compactMap { cellViewModels, backingScale, _ in
+        .compactMap { cellViewModels, _, _, backingScale, _ in
+            gridView.layoutSubtreeIfNeeded()
             let inset = Constants.outlineInset
 
             let frames = cellViewModels.enumerated().compactMap { day, viewModel -> NSRect? in
                 guard viewModel.inMonth, let view = dateViews[safe: day] else { return nil }
                 view.layoutSubtreeIfNeeded()
+                view.needsDisplay = true
                 return view.frame
                     .insetBy(dx: -inset, dy: -inset)
                     .expandedToPixelGrid(scale: backingScale)

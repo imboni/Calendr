@@ -11,6 +11,7 @@ import RxSwift
 protocol StatusItemSettings {
     var showStatusItemIcon: Observable<Bool> { get }
     var showStatusItemDate: Observable<Bool> { get }
+    var showStatusItemLunarDate: Observable<Bool> { get }
     var statusItemBackgroundStyle: Observable<StatusItemBackgroundStyle> { get }
     var openOnHover: Observable<Bool> { get }
     var statusItemIconStyle: Observable<StatusItemIconStyle> { get }
@@ -29,6 +30,9 @@ protocol CalendarSettings {
     var highlightedWeekdays: Observable<[Int]> { get }
     var showMonthOutline: Observable<Bool> { get }
     var showWeekNumbers: Observable<Bool> { get }
+    var showLunarCalendar: Observable<Bool> { get }
+    var showMainlandHolidays: Observable<Bool> { get }
+    var showSolarTerms: Observable<Bool> { get }
     var showDeclinedEvents: Observable<Bool> { get }
     var preserveSelectedDate: Observable<Bool> { get }
     var dateHoverOption: Observable<Bool> { get }
@@ -62,6 +66,7 @@ protocol EventListSettings: EventSettings {
     var showPastEvents: Observable<Bool> { get }
     var showOverdueReminders: Observable<Bool> { get }
     var showEventListSummary: Observable<Bool> { get }
+    var showLunarCalendar: Observable<Bool> { get }
 }
 
 protocol NextEventSettings: EventListSettings {
@@ -111,6 +116,7 @@ class SettingsViewModel:
     let toggleLaunchAgent: AnyObserver<Bool>
     let toggleStatusItemIcon: AnyObserver<Bool>
     let toggleStatusItemDate: AnyObserver<Bool>
+    let toggleStatusItemLunarDate: AnyObserver<Bool>
     let statusItemBackgroundStyleObserver: AnyObserver<StatusItemBackgroundStyle>
     let toggleOpenOnHover: AnyObserver<Bool>
     let statusItemTextScalingObserver: AnyObserver<Double>
@@ -135,6 +141,9 @@ class SettingsViewModel:
     let toggleHighlightedWeekday: AnyObserver<Int>
     let toggleMonthOutline: AnyObserver<Bool>
     let toggleWeekNumbers: AnyObserver<Bool>
+    let toggleLunarCalendar: AnyObserver<Bool>
+    let toggleMainlandHolidays: AnyObserver<Bool>
+    let toggleSolarTerms: AnyObserver<Bool>
     let toggleDeclinedEvents: AnyObserver<Bool>
     let togglePreserveSelectedDate: AnyObserver<Bool>
     let toggleDateHoverOption: AnyObserver<Bool>
@@ -162,6 +171,7 @@ class SettingsViewModel:
     let launchAgent: Observable<Bool>
     let showStatusItemIcon: Observable<Bool>
     let showStatusItemDate: Observable<Bool>
+    let showStatusItemLunarDate: Observable<Bool>
     let statusItemBackgroundStyle: Observable<StatusItemBackgroundStyle>
     let openOnHover: Observable<Bool>
     let statusItemIconStyle: Observable<StatusItemIconStyle>
@@ -191,6 +201,9 @@ class SettingsViewModel:
     let highlightedWeekdaysOptions: Observable<[WeekDay]>
     let showMonthOutline: Observable<Bool>
     let showWeekNumbers: Observable<Bool>
+    let showLunarCalendar: Observable<Bool>
+    let showMainlandHolidays: Observable<Bool>
+    let showSolarTerms: Observable<Bool>
     let showDeclinedEvents: Observable<Bool>
     let preserveSelectedDate: Observable<Bool>
     let dateHoverOption: Observable<Bool>
@@ -282,6 +295,7 @@ class SettingsViewModel:
         toggleLaunchAgent = autoLauncher.rx.observer(for: \.isLaunchAgentEnabled)
         toggleStatusItemIcon = localStorage.rx.observer(for: \.statusItemIconEnabled)
         toggleStatusItemDate = localStorage.rx.observer(for: \.statusItemDateEnabled)
+        toggleStatusItemLunarDate = localStorage.rx.observer(for: \.statusItemLunarDateEnabled)
         statusItemBackgroundStyleObserver = localStorage.rx.observer(for: \.statusItemBackgroundStyle).mapObserver(\.rawValue)
         toggleOpenOnHover = localStorage.rx.observer(for: \.statusItemOpenOnHover)
         statusItemIconStyleObserver = localStorage.rx.observer(for: \.statusItemIconStyle).mapObserver(\.rawValue)
@@ -306,6 +320,9 @@ class SettingsViewModel:
         weekCountObserver = localStorage.rx.observer(for: \.weekCount)
         toggleMonthOutline = localStorage.rx.observer(for: \.showMonthOutline)
         toggleWeekNumbers = localStorage.rx.observer(for: \.showWeekNumbers)
+        toggleLunarCalendar = localStorage.rx.observer(for: \.showLunarCalendar)
+        toggleMainlandHolidays = localStorage.rx.observer(for: \.showMainlandHolidays)
+        toggleSolarTerms = localStorage.rx.observer(for: \.showSolarTerms)
         toggleDeclinedEvents = localStorage.rx.observer(for: \.showDeclinedEvents)
         togglePreserveSelectedDate = localStorage.rx.observer(for: \.preserveSelectedDate)
         toggleDateHoverOption = localStorage.rx.observer(for: \.dateHoverOption)
@@ -335,6 +352,7 @@ class SettingsViewModel:
         openOnHover = localStorage.rx.observe(\.statusItemOpenOnHover)
         showStatusItemIcon = localStorage.rx.observe(\.statusItemIconEnabled)
         showStatusItemDate = localStorage.rx.observe(\.statusItemDateEnabled)
+        showStatusItemLunarDate = localStorage.rx.observe(\.statusItemLunarDateEnabled)
         statusItemBackgroundStyle = localStorage.rx.observe(\.statusItemBackgroundStyle).map { .init(rawValue: $0) ?? .transparent }
         statusItemIconStyle = localStorage.rx.observe(\.statusItemIconStyle).map { .init(rawValue: $0) ?? .calendar }
         statusItemDateStyle = localStorage.rx.observe(\.statusItemDateStyle).map { .init(rawValue: $0) ?? .none }
@@ -358,6 +376,9 @@ class SettingsViewModel:
         weekCount = localStorage.rx.observe(\.weekCount)
         showMonthOutline = localStorage.rx.observe(\.showMonthOutline)
         showWeekNumbers = localStorage.rx.observe(\.showWeekNumbers)
+        showLunarCalendar = localStorage.rx.observe(\.showLunarCalendar)
+        showMainlandHolidays = localStorage.rx.observe(\.showMainlandHolidays)
+        showSolarTerms = localStorage.rx.observe(\.showSolarTerms)
         showDeclinedEvents = localStorage.rx.observe(\.showDeclinedEvents)
         preserveSelectedDate = localStorage.rx.observe(\.preserveSelectedDate)
         dateHoverOption = localStorage.rx.observe(\.dateHoverOption)
@@ -410,14 +431,17 @@ class SettingsViewModel:
             }
             .share(replay: 1)
 
-        dateFormatOptions = calendarChangeObservable
-            .map {
+        dateFormatOptions = Observable.combineLatest(calendarChangeObservable, showStatusItemLunarDate)
+            .map { _, showLunar in
                 let dateFormatter = DateFormatter(calendar: dateProvider.calendar)
                 var options: [DateFormatOption] = []
 
                 for option in StatusItemDateStyle.allCases {
                     dateFormatter.dateStyle = option
-                    let title = dateFormatter.string(from: dateProvider.now)
+                    var title = dateFormatter.string(from: dateProvider.now)
+                    if showLunar, let lunar = chineseLunarFullDateString(from: dateProvider.now, calendar: dateProvider.calendar) {
+                        title += " " + lunar
+                    }
                     guard !options.contains(where: { $0.title == title }) else { continue }
                     options.append(.init(style: option, title: title))
                 }
