@@ -302,8 +302,13 @@ class CalendarViewModel {
             .map(*)
             .share(replay: 1)
 
-        cellSize = calendarScaling
-            .map { Constants.cellSize * $0 + 10 * ($0 - 1) }
+        cellSize = Observable
+            .combineLatest(calendarScaling, settings.showLunarCalendar)
+            .map { scaling, showLunar in
+                let baseSize = Constants.cellSize * scaling + 10 * (scaling - 1)
+                let lunarExtra = showLunar ? Constants.lunarCellExtra * scaling : 0
+                return baseSize + lunarExtra
+            }
             .distinctUntilChanged()
             .share(replay: 1)
 
@@ -375,6 +380,7 @@ private extension CalendarCellViewModel {
 private enum Constants {
 
     static let cellSize: CGFloat = 25
+    static let lunarCellExtra: CGFloat = 12
     static let weekNumberCellRatio: CGFloat = 0.85
     static let maxSearchResults: Int = 12
 }

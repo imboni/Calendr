@@ -60,9 +60,15 @@ class CalendarCellView: NSView {
 
         label.alignment = .center
         label.textColor = .headerTextColor
+        label.setContentHuggingPriority(.required, for: .vertical)
+        label.setContentCompressionResistancePriority(.required, for: .vertical)
 
         lunarLabel.alignment = .center
         lunarLabel.textColor = .secondaryLabelColor
+        lunarLabel.maximumNumberOfLines = 1
+        lunarLabel.lineBreakMode = .byClipping
+        lunarLabel.setContentHuggingPriority(.required, for: .vertical)
+        lunarLabel.setContentCompressionResistancePriority(.required, for: .vertical)
 
         let eventsContainer = NSView()
         eventsContainer.addSubview(eventsStackView)
@@ -75,7 +81,9 @@ class CalendarCellView: NSView {
 
         let contentStackView = NSStackView(views: [label, lunarLabel, eventsContainer])
             .with(orientation: .vertical)
-            .with(spacing: 0)
+            .with(spacing: 2)
+            .with(alignment: .centerX)
+            .with(insets: .init(top: 2, left: 0, bottom: 2, right: 0))
 
         addSubview(contentStackView)
 
@@ -107,6 +115,12 @@ class CalendarCellView: NSView {
             .map { $0.lunarText ?? "" }
             .distinctUntilChanged()
             .bind(to: lunarLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        viewModel
+            .map { $0.lunarText == nil }
+            .distinctUntilChanged()
+            .bind(to: lunarLabel.rx.isHidden)
             .disposed(by: disposeBag)
 
         viewModel
