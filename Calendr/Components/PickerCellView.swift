@@ -31,6 +31,10 @@ class PickerCellView: NSView {
         forAutoLayout()
         wantsLayer = true
         clipsToBounds = false
+        setContentHuggingPriority(.defaultLow, for: .horizontal)
+        setContentHuggingPriority(.defaultLow, for: .vertical)
+        setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        setContentCompressionResistancePriority(.defaultLow, for: .vertical)
 
         borderLayer.cornerRadius = 5
         borderLayer.borderWidth = 2
@@ -39,9 +43,7 @@ class PickerCellView: NSView {
         addSubview(label)
         label.center(in: self)
 
-        let click = NSClickGestureRecognizer(target: self, action: #selector(handleClick))
-        addGestureRecognizer(click)
-
+        addGestureRecognizer(NSClickGestureRecognizer(target: self, action: #selector(handleClick)))
         updateBorder()
     }
 
@@ -90,6 +92,44 @@ class PickerCellView: NSView {
 
     override func mouseExited(with event: NSEvent) {
         isHovered = false
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+class PickerGridView: NSStackView {
+
+    init(columns: Int, titles: [String], currentIndex: Int, onSelect: @escaping (Int) -> Void) {
+        super.init(frame: .zero)
+
+        orientation = .vertical
+        spacing = 0
+        distribution = .fillEqually
+        alignment = .width
+        setContentHuggingPriority(.defaultLow, for: .horizontal)
+        setContentHuggingPriority(.defaultLow, for: .vertical)
+
+        let rows = Int(ceil(Double(titles.count) / Double(columns)))
+        for row in 0..<rows {
+            let rowView = NSStackView()
+            rowView.orientation = .horizontal
+            rowView.spacing = 0
+            rowView.distribution = .fillEqually
+            rowView.alignment = .height
+            rowView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            rowView.setContentHuggingPriority(.defaultLow, for: .vertical)
+
+            for col in 0..<columns {
+                let index = row * columns + col
+                guard index < titles.count else { break }
+                let cell = PickerCellView(title: titles[index], isCurrent: index == currentIndex)
+                cell.onClick = { onSelect(index) }
+                rowView.addArrangedSubview(cell)
+            }
+            addArrangedSubview(rowView)
+        }
     }
 
     required init?(coder: NSCoder) {

@@ -11,25 +11,27 @@ class YearPickerView: NSView {
         super.init(frame: .zero)
 
         wantsLayer = true
-        layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+        layer?.backgroundColor = NSColor.textBackgroundColor.cgColor
 
         let startYear = currentYear - 5
         let years = Array(startYear..<(startYear + 12))
+        let currentIndex = years.firstIndex(of: currentYear) ?? 5
 
-        let grid = NSGridView(numberOfColumns: 4, rows: 3)
-        grid.xPlacement = .fill
-        grid.yPlacement = .fill
-        grid.rowSpacing = 0
-        grid.columnSpacing = 0
-
-        for (index, year) in years.enumerated() {
-            let cell = PickerCellView(title: "\(year)", isCurrent: year == currentYear)
-            cell.onClick = { onYearSelected(year) }
-            grid.cell(atColumnIndex: index % 4, rowIndex: index / 4).contentView = cell
+        let grid = PickerGridView(
+            columns: 4,
+            titles: years.map { "\($0)" },
+            currentIndex: currentIndex
+        ) { index in
+            onYearSelected(years[index])
         }
 
         addSubview(grid)
         grid.edges(equalTo: self)
+    }
+
+    override func updateLayer() {
+        super.updateLayer()
+        layer?.backgroundColor = NSColor.textBackgroundColor.cgColor
     }
 
     required init?(coder: NSCoder) {

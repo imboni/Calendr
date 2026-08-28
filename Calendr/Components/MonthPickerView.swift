@@ -12,22 +12,24 @@ class MonthPickerView: NSView {
         _ = calendar
 
         wantsLayer = true
-        layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+        layer?.backgroundColor = NSColor.textBackgroundColor.cgColor
 
-        let grid = NSGridView(numberOfColumns: 3, rows: 4)
-        grid.xPlacement = .fill
-        grid.yPlacement = .fill
-        grid.rowSpacing = 0
-        grid.columnSpacing = 0
-
-        for month in 1...12 {
-            let cell = PickerCellView(title: "\(month)月", isCurrent: month == currentMonth)
-            cell.onClick = { onMonthSelected(month) }
-            grid.cell(atColumnIndex: (month - 1) % 3, rowIndex: (month - 1) / 3).contentView = cell
+        let titles = (1...12).map { "\($0)月" }
+        let grid = PickerGridView(
+            columns: 3,
+            titles: titles,
+            currentIndex: currentMonth - 1
+        ) { index in
+            onMonthSelected(index + 1)
         }
 
         addSubview(grid)
         grid.edges(equalTo: self)
+    }
+
+    override func updateLayer() {
+        super.updateLayer()
+        layer?.backgroundColor = NSColor.textBackgroundColor.cgColor
     }
 
     required init?(coder: NSCoder) {
