@@ -7,8 +7,7 @@ import AppKit
 
 class MonthPickerView: PickerGridView {
 
-    init(currentMonth: Int, calendar: Calendar, onMonthSelected: @escaping (Int) -> Void) {
-        _ = calendar
+    init(currentMonth: Int, onMonthSelected: @escaping (Int) -> Void) {
         super.init(
             columns: 3,
             titles: (1...12).map { "\($0)月" },

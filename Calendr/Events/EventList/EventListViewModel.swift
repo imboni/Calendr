@@ -106,6 +106,8 @@ class EventListViewModel {
 
         relativeFormatter = RelativeDateTimeFormatter()
         relativeFormatter.dateTimeStyle = .named
+        relativeFormatter.locale = dateProvider.calendar.locale
+        relativeFormatter.calendar = dateProvider.calendar
 
         dateComponentsFormatter = DateComponentsFormatter()
         dateComponentsFormatter.calendar = dateProvider.calendar

@@ -114,6 +114,8 @@ class SettingsViewModelTests {
         #expect(localStorageShowMonthOutline == nil)
         #expect(localStorageAutoCheckForUpdates == nil)
 
+        dateProvider.m_calendar.locale = Locale(identifier: "en_US")
+
         registerDefaultPrefs(
             in: localStorage,
             calendar: .gregorian.with(firstWeekday: 3),

@@ -123,11 +123,6 @@ class PickerGridView: NSView {
     override var isFlipped: Bool { true }
     override var isOpaque: Bool { false }
 
-    override func draw(_ dirtyRect: NSRect) {
-        NSColor.clear.setFill()
-        dirtyRect.fill()
-    }
-
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         needsLayout = true

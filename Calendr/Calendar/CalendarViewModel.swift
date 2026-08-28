@@ -15,7 +15,6 @@ class CalendarViewModel {
 
     let title: Observable<String>
     let yearTitle: Observable<String>
-    let compactYearTitle: Observable<String>
     let weekCount: Observable<Int>
     let weekDays: Observable<[WeekDay]>
     let weekNumbers: Observable<[Int]?>
@@ -64,16 +63,8 @@ class CalendarViewModel {
 
         yearTitle = lunarTitleParts
         .map { date, calendar, showLunar -> String in
-            guard showLunar else { return "" }
-            return DateFormatter(format: "yyyy年", calendar: calendar).string(from: date)
-        }
-        .distinctUntilChanged()
-        .share(replay: 1)
-
-        compactYearTitle = lunarTitleParts
-        .map { date, calendar, showLunar -> String in
-            guard !showLunar else { return "" }
-            return DateFormatter(format: "yyyy", calendar: calendar).string(from: date)
+            let format = showLunar ? "yyyy年" : "yyyy"
+            return DateFormatter(format: format, calendar: calendar).string(from: date)
         }
         .distinctUntilChanged()
         .share(replay: 1)

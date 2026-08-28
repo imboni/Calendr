@@ -4,7 +4,6 @@
 //
 
 import AppKit
-import RxSwift
 
 class ClickableLabel: Label {
 
@@ -20,29 +19,6 @@ class ClickableLabel: Label {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupClickHandling()
-    }
-
-    convenience init(scaling: Observable<Double>) {
-        self.init(text: "", scaling: scaling)
-    }
-
-    convenience init(
-        text: String = "",
-        font: NSFont? = nil,
-        color: NSColor? = nil,
-        align: NSTextAlignment = .natural,
-        scaling: Observable<Double> = Scaling.observable
-    ) {
-        self.init(frame: .zero)
-        stringValue = text
-        isBezeled = false
-        drawsBackground = false
-        isEditable = false
-        isSelectable = false
-        self.font = font
-        textColor = color
-        alignment = align
-        setContentHuggingPriority(.fittingSizeCompression, for: .horizontal)
     }
 
     private func setupClickHandling() {
