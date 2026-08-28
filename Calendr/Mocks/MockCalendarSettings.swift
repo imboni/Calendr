@@ -26,6 +26,9 @@ class MockCalendarSettings: CalendarSettings {
     let showWeekNumbers: Observable<Bool>
     let toggleWeekNumbers: AnyObserver<Bool>
 
+    let showLunarCalendar: Observable<Bool>
+    let toggleLunarCalendar: AnyObserver<Bool>
+
     let showDeclinedEvents: Observable<Bool>
     let toggleDeclinedEvents: AnyObserver<Bool>
 
@@ -63,6 +66,7 @@ class MockCalendarSettings: CalendarSettings {
         highlightedWeekdays: [Int] = [0, 6],
         showMonthOutline: Bool = false,
         showWeekNumbers: Bool = false,
+        showLunarCalendar: Bool = true,
         weekCount: Int = 6,
         eventDotsStyle: EventDotsStyle = .multiple,
         showDeclinedEvents: Bool = false,
@@ -76,6 +80,7 @@ class MockCalendarSettings: CalendarSettings {
         (self.firstWeekday, firstWeekdayObserver) = BehaviorSubject.pipe(value: firstWeekday)
         (self.highlightedWeekdays, highlightedWeekdaysObserver) = BehaviorSubject.pipe(value: highlightedWeekdays)
         (self.showWeekNumbers, toggleWeekNumbers) = BehaviorSubject.pipe(value: showWeekNumbers)
+        (self.showLunarCalendar, toggleLunarCalendar) = BehaviorSubject.pipe(value: showLunarCalendar)
         (self.weekCount, weekCountObserver) = BehaviorSubject.pipe(value: weekCount)
         (self.showDeclinedEvents, toggleDeclinedEvents) = BehaviorSubject.pipe(value: showDeclinedEvents)
         (self.showAllDayEvents, toggleAllDayEvents) = BehaviorSubject.pipe(value: showAllDayEvents)
