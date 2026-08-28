@@ -1114,7 +1114,6 @@ class MainViewController: NSViewController {
         pickerView?.removeFromSuperview()
         pickerView = nil
 
-        calendarView.isHidden = mode != .none
 
         guard mode != .none else { return }
 
@@ -1140,11 +1139,9 @@ class MainViewController: NSViewController {
             return
         }
 
-        if let calendarContainer = calendarView.superview {
-            calendarContainer.addSubview(picker)
-            picker.edges(equalTo: calendarContainer)
-            pickerView = picker
-        }
+        calendarView.addSubview(picker)
+        picker.edges(equalTo: calendarView)
+        pickerView = picker
     }
 
     private func makeToolBar() -> NSView {

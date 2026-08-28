@@ -2,8 +2,6 @@
 //  MonthPickerView.swift
 //  Calendr
 //
-//  Created by Cursor Agent.
-//
 
 import AppKit
 import RxSwift
@@ -11,51 +9,43 @@ import RxSwift
 class MonthPickerView: NSView {
 
     private let disposeBag = DisposeBag()
-    private let monthButtons: [NSButton]
-    private let currentMonth: Int
-    private let onMonthSelected: (Int) -> Void
 
     init(currentMonth: Int, calendar: Calendar, onMonthSelected: @escaping (Int) -> Void) {
-        self.currentMonth = currentMonth
-        self.onMonthSelected = onMonthSelected
-
-        let monthSymbols = calendar.shortMonthSymbols
-
-        self.monthButtons = (1...12).map { month in
-            let button = NSButton()
-            button.title = monthSymbols[month - 1]
-            button.isBordered = false
-            button.bezelStyle = .rounded
-            button.setButtonType(.momentaryChange)
-            button.font = .systemFont(ofSize: 13)
-            button.contentTintColor = month == currentMonth ? .controlAccentColor : .labelColor
-            button.tag = month
-            return button
-        }
-
         super.init(frame: .zero)
 
-        let gridView = NSGridView(numberOfColumns: 3, rows: 4)
-        gridView.translatesAutoresizingMaskIntoConstraints = false
-        gridView.columnSpacing = 8
-        gridView.rowSpacing = 8
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
 
-        for (index, button) in monthButtons.enumerated() {
-            let row = index / 3
-            let col = index % 3
-            let cell = gridView.cell(atColumnIndex: col, rowIndex: row)
-            cell.contentView = button
+        let titles = (1...12).map { "\($0)月" }
 
-            button.rx.tap
-                .bind { [weak self] in
-                    self?.onMonthSelected(button.tag)
-                }
-                .disposed(by: disposeBag)
+        let grid = NSStackView()
+        grid.orientation = .vertical
+        grid.spacing = 6
+        grid.distribution = .fillEqually
+
+        for row in 0..<4 {
+            let rowView = NSStackView()
+            rowView.spacing = 6
+            rowView.distribution = .fillEqually
+            for col in 0..<3 {
+                let month = row * 3 + col + 1
+                let button = NSButton(title: titles[month - 1], target: nil, action: nil)
+                button.bezelStyle = .flexiblePush
+                button.isBordered = true
+                button.font = .systemFont(ofSize: 13, weight: month == currentMonth ? .semibold : .regular)
+                button.contentTintColor = month == currentMonth ? .controlAccentColor : .labelColor
+                button.setContentHuggingPriority(.defaultLow, for: .horizontal)
+                button.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+                button.rx.tap
+                    .bind { onMonthSelected(month) }
+                    .disposed(by: disposeBag)
+                rowView.addArrangedSubview(button)
+            }
+            grid.addArrangedSubview(rowView)
         }
 
-        addSubview(gridView)
-
-        gridView.edges(equalTo: self, margins: .init(8))
+        addSubview(grid)
+        grid.edges(equalTo: self, margins: .init(8))
     }
 
     required init?(coder: NSCoder) {

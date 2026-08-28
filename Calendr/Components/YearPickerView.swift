@@ -2,8 +2,6 @@
 //  YearPickerView.swift
 //  Calendr
 //
-//  Created by Cursor Agent.
-//
 
 import AppKit
 import RxSwift
@@ -11,52 +9,44 @@ import RxSwift
 class YearPickerView: NSView {
 
     private let disposeBag = DisposeBag()
-    private let yearButtons: [NSButton]
-    private let currentYear: Int
-    private let onYearSelected: (Int) -> Void
 
     init(currentYear: Int, onYearSelected: @escaping (Int) -> Void) {
-        self.currentYear = currentYear
-        self.onYearSelected = onYearSelected
-
-        let startYear = (currentYear / 10) * 10 - 5
-        let years = (startYear..<startYear + 20).map { $0 }
-
-        self.yearButtons = years.map { year in
-            let button = NSButton()
-            button.title = "\(year)"
-            button.isBordered = false
-            button.bezelStyle = .rounded
-            button.setButtonType(.momentaryChange)
-            button.font = .systemFont(ofSize: 13)
-            button.contentTintColor = year == currentYear ? .controlAccentColor : .labelColor
-            button.tag = year
-            return button
-        }
-
         super.init(frame: .zero)
 
-        let gridView = NSGridView(numberOfColumns: 4, rows: 5)
-        gridView.translatesAutoresizingMaskIntoConstraints = false
-        gridView.columnSpacing = 8
-        gridView.rowSpacing = 8
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
 
-        for (index, button) in yearButtons.enumerated() {
-            let row = index / 4
-            let col = index % 4
-            let cell = gridView.cell(atColumnIndex: col, rowIndex: row)
-            cell.contentView = button
+        let startYear = (currentYear / 10) * 10 - 5
+        let years = Array(startYear..<(startYear + 20))
 
-            button.rx.tap
-                .bind { [weak self] in
-                    self?.onYearSelected(button.tag)
-                }
-                .disposed(by: disposeBag)
+        let grid = NSStackView()
+        grid.orientation = .vertical
+        grid.spacing = 6
+        grid.distribution = .fillEqually
+
+        for row in 0..<5 {
+            let rowView = NSStackView()
+            rowView.spacing = 6
+            rowView.distribution = .fillEqually
+            for col in 0..<4 {
+                let year = years[row * 4 + col]
+                let button = NSButton(title: "\(year)", target: nil, action: nil)
+                button.bezelStyle = .flexiblePush
+                button.isBordered = true
+                button.font = .systemFont(ofSize: 13, weight: year == currentYear ? .semibold : .regular)
+                button.contentTintColor = year == currentYear ? .controlAccentColor : .labelColor
+                button.setContentHuggingPriority(.defaultLow, for: .horizontal)
+                button.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+                button.rx.tap
+                    .bind { onYearSelected(year) }
+                    .disposed(by: disposeBag)
+                rowView.addArrangedSubview(button)
+            }
+            grid.addArrangedSubview(rowView)
         }
 
-        addSubview(gridView)
-
-        gridView.edges(equalTo: self, margins: .init(8))
+        addSubview(grid)
+        grid.edges(equalTo: self, margins: .init(8))
     }
 
     required init?(coder: NSCoder) {
