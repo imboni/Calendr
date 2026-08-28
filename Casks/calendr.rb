@@ -1,6 +1,6 @@
 cask "calendr" do
   version "v1.25.0"
-  sha256 :no_check
+  sha256 "e894eba5b1f267d3bf5f367bdf33918310394edd5c1cc032311f4bbe260e16e1"
 
   url "https://github.com/imboni/Calendr/releases/download/#{version}/Calendr.zip"
   name "Calendr"
