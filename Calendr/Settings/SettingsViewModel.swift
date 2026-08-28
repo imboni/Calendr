@@ -29,6 +29,7 @@ protocol CalendarSettings {
     var highlightedWeekdays: Observable<[Int]> { get }
     var showMonthOutline: Observable<Bool> { get }
     var showWeekNumbers: Observable<Bool> { get }
+    var showLunarCalendar: Observable<Bool> { get }
     var showDeclinedEvents: Observable<Bool> { get }
     var preserveSelectedDate: Observable<Bool> { get }
     var dateHoverOption: Observable<Bool> { get }
@@ -135,6 +136,7 @@ class SettingsViewModel:
     let toggleHighlightedWeekday: AnyObserver<Int>
     let toggleMonthOutline: AnyObserver<Bool>
     let toggleWeekNumbers: AnyObserver<Bool>
+    let toggleLunarCalendar: AnyObserver<Bool>
     let toggleDeclinedEvents: AnyObserver<Bool>
     let togglePreserveSelectedDate: AnyObserver<Bool>
     let toggleDateHoverOption: AnyObserver<Bool>
@@ -191,6 +193,7 @@ class SettingsViewModel:
     let highlightedWeekdaysOptions: Observable<[WeekDay]>
     let showMonthOutline: Observable<Bool>
     let showWeekNumbers: Observable<Bool>
+    let showLunarCalendar: Observable<Bool>
     let showDeclinedEvents: Observable<Bool>
     let preserveSelectedDate: Observable<Bool>
     let dateHoverOption: Observable<Bool>
@@ -306,6 +309,7 @@ class SettingsViewModel:
         weekCountObserver = localStorage.rx.observer(for: \.weekCount)
         toggleMonthOutline = localStorage.rx.observer(for: \.showMonthOutline)
         toggleWeekNumbers = localStorage.rx.observer(for: \.showWeekNumbers)
+        toggleLunarCalendar = localStorage.rx.observer(for: \.showLunarCalendar)
         toggleDeclinedEvents = localStorage.rx.observer(for: \.showDeclinedEvents)
         togglePreserveSelectedDate = localStorage.rx.observer(for: \.preserveSelectedDate)
         toggleDateHoverOption = localStorage.rx.observer(for: \.dateHoverOption)
@@ -358,6 +362,7 @@ class SettingsViewModel:
         weekCount = localStorage.rx.observe(\.weekCount)
         showMonthOutline = localStorage.rx.observe(\.showMonthOutline)
         showWeekNumbers = localStorage.rx.observe(\.showWeekNumbers)
+        showLunarCalendar = localStorage.rx.observe(\.showLunarCalendar)
         showDeclinedEvents = localStorage.rx.observe(\.showDeclinedEvents)
         preserveSelectedDate = localStorage.rx.observe(\.preserveSelectedDate)
         dateHoverOption = localStorage.rx.observe(\.dateHoverOption)

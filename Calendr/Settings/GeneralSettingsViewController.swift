@@ -46,6 +46,7 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
     private let weekCountStepper = NSStepper()
     private let showMonthOutlineCheckbox = Checkbox(title: Strings.Settings.Calendar.showMonthOutline)
     private let showWeekNumbersCheckbox = Checkbox(title: Strings.Settings.Calendar.showWeekNumbers)
+    private let showLunarCalendarCheckbox = Checkbox(title: Strings.Settings.Calendar.showLunarCalendar)
     private let showDeclinedEventsCheckbox = Checkbox(title: Strings.Settings.Calendar.showDeclinedEvents)
     private let preserveSelectedDateCheckbox = Checkbox(title: Strings.Settings.Calendar.preserveSelectedDate)
     private let dateHoverOptionCheckbox = Checkbox(title: Strings.Settings.Calendar.dateHoverOption)
@@ -229,6 +230,7 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
             .dummy,
             showMonthOutlineCheckbox,
             showWeekNumbersCheckbox,
+            showLunarCalendarCheckbox,
             NSStackView(views: [showDeclinedEventsCheckbox, showDeclinedEventsTooltip]),
             preserveSelectedDateCheckbox,
             dateHoverOptionCheckbox,
@@ -616,6 +618,13 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
             control: showWeekNumbersCheckbox,
             observable: viewModel.showWeekNumbers,
             observer: viewModel.toggleWeekNumbers
+        )
+        .disposed(by: disposeBag)
+
+        bind(
+            control: showLunarCalendarCheckbox,
+            observable: viewModel.showLunarCalendar,
+            observer: viewModel.toggleLunarCalendar
         )
         .disposed(by: disposeBag)
 

@@ -84,9 +84,10 @@ class CalendarViewModel {
                 debouncedWeekCount,
                 dateRangeObservable,
                 calendarUpdated,
-                settings.eventDotsStyle
+                settings.eventDotsStyle,
+                settings.showLunarCalendar
             )
-            .map { weeksCount, month, calendar, dotsStyle -> [CalendarCellViewModel] in
+            .map { weeksCount, month, calendar, dotsStyle, showLunarCalendar -> [CalendarCellViewModel] in
 
                 let monthStartWeekDay = calendar.component(.weekday, from: month.start)
 
@@ -108,7 +109,8 @@ class CalendarViewModel {
                         isHovered: false,
                         events: [],
                         dotsStyle: dotsStyle,
-                        calendar: calendar
+                        calendar: calendar,
+                        showLunarCalendar: showLunarCalendar
                     )
                 }
             }
@@ -364,7 +366,8 @@ private extension CalendarCellViewModel {
             isHovered: isHovered ?? self.isHovered,
             events: events ?? self.events,
             dotsStyle: dotsStyle,
-            calendar: calendar ?? self.calendar
+            calendar: calendar ?? self.calendar,
+            showLunarCalendar: showLunarCalendar
         )
     }
 }

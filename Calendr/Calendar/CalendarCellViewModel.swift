@@ -21,12 +21,18 @@ struct CalendarCellViewModel: Equatable {
     let events: [EventModel]
     let dotsStyle: EventDotsStyle
     let calendar: Calendar
+    let showLunarCalendar: Bool
 }
 
 extension CalendarCellViewModel {
 
     var text: String {
         "\(calendar.component(.day, from: date))"
+    }
+
+    var lunarText: String? {
+        guard showLunarCalendar else { return nil }
+        return chineseLunarDateString(from: date, calendar: calendar)
     }
 
     var alpha: CGFloat {

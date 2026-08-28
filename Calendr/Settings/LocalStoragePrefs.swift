@@ -52,6 +52,7 @@ enum Prefs {
     static let defaultCalendarApp = "default_calendar_app"
     static let calendarTextScaling = "calendar_text_scaling"
     static let eventDotsStyle = "event_dots_style"
+    static let showLunarCalendar = "show_lunar_calendar"
 
     // Event Details
     static let showMap = "show_map"
@@ -138,6 +139,7 @@ func registerDefaultPrefs(
         Prefs.calendarAppViewMode: CalendarViewMode.month.rawValue,
         Prefs.defaultCalendarApp: CalendarApp.calendar.rawValue,
         Prefs.calendarTextScaling: 1,
+        Prefs.showLunarCalendar: true,
 
         // Event Details
         Prefs.showMap: true,
@@ -370,6 +372,11 @@ extension LocalStorageProvider {
     @objc dynamic var calendarTextScaling: Double {
         get { double(forKey: Prefs.calendarTextScaling) }
         set { set(newValue, forKey: Prefs.calendarTextScaling) }
+    }
+
+    @objc dynamic var showLunarCalendar: Bool {
+        get { bool(forKey: Prefs.showLunarCalendar) }
+        set { set(newValue, forKey: Prefs.showLunarCalendar) }
     }
 
     // Event Details

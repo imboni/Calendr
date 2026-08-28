@@ -20,6 +20,7 @@ class CalendarCellView: NSView {
     private let textScaling: Observable<Double>
 
     private let label: Label
+    private let lunarLabel: Label
     private let eventsStackView = NSStackView()
     private let borderLayer = CALayer()
 
@@ -40,6 +41,7 @@ class CalendarCellView: NSView {
         self.textScaling = textScaling
 
         label = Label(font: .systemFont(ofSize: Constants.fontSize), scaling: textScaling)
+        lunarLabel = Label(font: .systemFont(ofSize: Constants.lunarFontSize), scaling: textScaling)
 
         super.init(frame: .zero)
 
@@ -59,6 +61,9 @@ class CalendarCellView: NSView {
         label.alignment = .center
         label.textColor = .headerTextColor
 
+        lunarLabel.alignment = .center
+        lunarLabel.textColor = .secondaryLabelColor
+
         let eventsContainer = NSView()
         eventsContainer.addSubview(eventsStackView)
 
@@ -68,9 +73,9 @@ class CalendarCellView: NSView {
         eventsStackView.center(in: eventsContainer, orientation: .horizontal)
         eventsStackView.width(lessThanOrEqualTo: eventsContainer)
 
-        let contentStackView = NSStackView(views: [label, eventsContainer])
+        let contentStackView = NSStackView(views: [label, lunarLabel, eventsContainer])
             .with(orientation: .vertical)
-            .with(spacing: 2)
+            .with(spacing: 0)
 
         addSubview(contentStackView)
 
@@ -96,6 +101,18 @@ class CalendarCellView: NSView {
             .map(\.alpha)
             .distinctUntilChanged()
             .bind(to: label.rx.alpha)
+            .disposed(by: disposeBag)
+
+        viewModel
+            .map { $0.lunarText ?? "" }
+            .distinctUntilChanged()
+            .bind(to: lunarLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        viewModel
+            .map { vm in vm.lunarText == nil ? 0 : vm.alpha * 0.7 }
+            .distinctUntilChanged()
+            .bind(to: lunarLabel.rx.alpha)
             .disposed(by: disposeBag)
 
         viewModel
@@ -234,6 +251,7 @@ private func makeEventDot(color: NSColor, scaling: Double) -> NSView {
 private enum Constants {
 
     static let fontSize: CGFloat = 12
+    static let lunarFontSize: CGFloat = 9
     static let eventDotSize: CGFloat = 3
 
     static let borderWidth: CGFloat = 2
