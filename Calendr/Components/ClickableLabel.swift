@@ -2,8 +2,6 @@
 //  ClickableLabel.swift
 //  Calendr
 //
-//  Created by Cursor Agent.
-//
 
 import AppKit
 import RxSwift
@@ -13,15 +11,15 @@ class ClickableLabel: Label {
     var onClick: (() -> Void)?
 
     private var trackingArea: NSTrackingArea?
-    private let disposeBag = DisposeBag()
-    private var baseFont = BehaviorSubject<NSFont>(value: .systemFont(ofSize: NSFont.systemFontSize))
 
-    override var font: NSFont? {
-        get { super.font }
-        set {
-            guard let newValue else { return }
-            baseFont.onNext(newValue)
-        }
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        setupClickHandling()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupClickHandling()
     }
 
     convenience init(scaling: Observable<Double>) {
@@ -35,34 +33,16 @@ class ClickableLabel: Label {
         align: NSTextAlignment = .natural,
         scaling: Observable<Double> = Scaling.observable
     ) {
-        self.init(labelWithString: text)
+        self.init(frame: .zero)
+        stringValue = text
+        isBezeled = false
+        drawsBackground = false
+        isEditable = false
+        isSelectable = false
         self.font = font
-        self.textColor = color
-        self.alignment = align
+        textColor = color
+        alignment = align
         setContentHuggingPriority(.fittingSizeCompression, for: .horizontal)
-        setUpBindings(scaling)
-        setupClickHandling()
-    }
-
-    private func setUpBindings(_ scaling: Observable<Double>) {
-        Observable
-            .combineLatest(baseFont, scaling)
-            .map { font, scaling in
-                font.withSize(font.pointSize * scaling)
-            }
-            .bind { [weak self] in
-                self?.setFont($0)
-            }
-            .disposed(by: disposeBag)
-    }
-
-    private func setFont(_ font: NSFont) {
-        super.font = font
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupClickHandling()
     }
 
     private func setupClickHandling() {

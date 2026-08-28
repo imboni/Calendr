@@ -348,7 +348,7 @@ class MainViewModel {
             .disposed(by: disposeBag)
 
         selectYear
-            .withLatestFrom(selectedDate) { year, currentDate -> Date in
+            .withLatestFrom(selectedDate) { [dateProvider] year, currentDate -> Date in
                 let calendar = dateProvider.calendar
                 let currentMonth = calendar.component(.month, from: currentDate)
                 let currentDay = calendar.component(.day, from: currentDate)
@@ -369,7 +369,7 @@ class MainViewModel {
             .disposed(by: disposeBag)
 
         selectMonth
-            .withLatestFrom(selectedDate) { month, currentDate -> Date in
+            .withLatestFrom(selectedDate) { [dateProvider] month, currentDate -> Date in
                 let calendar = dateProvider.calendar
                 let currentYear = calendar.component(.year, from: currentDate)
                 let currentDay = calendar.component(.day, from: currentDate)

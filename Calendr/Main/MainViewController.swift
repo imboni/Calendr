@@ -180,10 +180,8 @@ class MainViewController: NSViewController {
             doubleClickObserver: mainViewModel.openCalendarDateObserver
         )
 
-        yearLabel = Label(scaling: calendarViewModel.textScaling)
-        titleLabel = Label(scaling: calendarViewModel.textScaling)
         yearLabel = ClickableLabel(scaling: calendarViewModel.textScaling)
-        dateLabel = ClickableLabel(scaling: calendarViewModel.textScaling)
+        titleLabel = ClickableLabel(scaling: calendarViewModel.textScaling)
 
         let eventListEventsObservable = calendarViewModel.eventListObservable
             .debounce(.milliseconds(50), scheduler: MainScheduler.instance)
@@ -408,7 +406,7 @@ class MainViewController: NSViewController {
             }
         }
 
-        dateLabel.onClick = { [weak self] in
+        titleLabel.onClick = { [weak self] in
             guard let self else { return }
             if case .month = mainViewModel.currentPickerMode {
                 mainViewModel.hidePickerObserver.onNext(())
