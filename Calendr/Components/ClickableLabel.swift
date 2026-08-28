@@ -13,20 +13,51 @@ class ClickableLabel: Label {
     var onClick: (() -> Void)?
 
     private var trackingArea: NSTrackingArea?
+    private let disposeBag = DisposeBag()
+    private var baseFont = BehaviorSubject<NSFont>(value: .systemFont(ofSize: NSFont.systemFontSize))
+
+    override var font: NSFont? {
+        get { super.font }
+        set {
+            guard let newValue else { return }
+            baseFont.onNext(newValue)
+        }
+    }
 
     convenience init(scaling: Observable<Double>) {
         self.init(text: "", scaling: scaling)
     }
 
-    override init(
+    convenience init(
         text: String = "",
         font: NSFont? = nil,
         color: NSColor? = nil,
         align: NSTextAlignment = .natural,
         scaling: Observable<Double> = Scaling.observable
     ) {
-        super.init(text: text, font: font, color: color, align: align, scaling: scaling)
+        self.init(labelWithString: text)
+        self.font = font
+        self.textColor = color
+        self.alignment = align
+        setContentHuggingPriority(.fittingSizeCompression, for: .horizontal)
+        setUpBindings(scaling)
         setupClickHandling()
+    }
+
+    private func setUpBindings(_ scaling: Observable<Double>) {
+        Observable
+            .combineLatest(baseFont, scaling)
+            .map { font, scaling in
+                font.withSize(font.pointSize * scaling)
+            }
+            .bind { [weak self] in
+                self?.setFont($0)
+            }
+            .disposed(by: disposeBag)
+    }
+
+    private func setFont(_ font: NSFont) {
+        super.font = font
     }
 
     required init?(coder: NSCoder) {

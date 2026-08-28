@@ -30,11 +30,8 @@ class MainViewController: NSViewController {
     private let nextReminderView: NextEventView
     private let calendarView: CalendarView
     private let eventListView: EventListView
-    private let yearLabel: Label
-    private let titleLabel: Label
     private let yearLabel: ClickableLabel
-    private let dateLabel: ClickableLabel
-    private let titleStackView = NSStackView()
+    private let titleLabel: ClickableLabel
     private let searchInput = NSSearchField()
     private let searchInputSuggestionView = SearchSuggestionView()
     private let prevBtn = ImageButton()
@@ -400,14 +397,6 @@ class MainViewController: NSViewController {
 
         calendarViewModel.title
             .bind(to: titleLabel.rx.text)
-            .disposed(by: disposeBag)
-
-        calendarViewModel.yearTitle
-            .bind(to: yearLabel.rx.text)
-            .disposed(by: disposeBag)
-
-        calendarViewModel.dateTitle
-            .bind(to: dateLabel.rx.text)
             .disposed(by: disposeBag)
 
         yearLabel.onClick = { [weak self] in
@@ -1100,20 +1089,6 @@ class MainViewController: NSViewController {
         yearLabel.textColor = .secondaryLabelColor
 
         titleLabel.textColor = .headerTextColor
-
-        yearLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        yearLabel.textColor = .headerTextColor
-        yearLabel.alignment = .center
-
-        dateLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        dateLabel.textColor = .headerTextColor
-        dateLabel.alignment = .center
-
-        titleStackView.orientation = .vertical
-        titleStackView.spacing = 2
-        titleStackView.alignment = .centerX
-        titleStackView.addArrangedSubview(yearLabel)
-        titleStackView.addArrangedSubview(dateLabel)
 
         [prevBtn, resetBtn, nextBtn].forEach { $0.size(equalTo: 22) }
 

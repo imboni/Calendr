@@ -348,15 +348,18 @@ class MainViewModel {
             .disposed(by: disposeBag)
 
         selectYear
-            .withLatestFrom(selectedDate) { year, currentDate in
-                let components = DateComponents(
-                    year: year,
-                    month: calendar.component(.month, from: currentDate),
-                    day: min(
-                        calendar.component(.day, from: currentDate),
-                        calendar.range(of: .day, in: .month, for: calendar.date(from: DateComponents(year: year, month: calendar.component(.month, from: currentDate)))!)?.count ?? 1
-                    )
-                )
+            .withLatestFrom(selectedDate) { year, currentDate -> Date in
+                let calendar = dateProvider.calendar
+                let currentMonth = calendar.component(.month, from: currentDate)
+                let currentDay = calendar.component(.day, from: currentDate)
+                
+                guard let targetMonthDate = calendar.date(from: DateComponents(year: year, month: currentMonth)) else {
+                    return currentDate
+                }
+                let maxDay = calendar.range(of: .day, in: .month, for: targetMonthDate)?.count ?? 1
+                let adjustedDay = min(currentDay, maxDay)
+                
+                let components = DateComponents(year: year, month: currentMonth, day: adjustedDay)
                 return calendar.date(from: components) ?? currentDate
             }
             .bind { [selectDateObserver, hidePickerObserver] newDate in
@@ -366,11 +369,18 @@ class MainViewModel {
             .disposed(by: disposeBag)
 
         selectMonth
-            .withLatestFrom(selectedDate) { month, currentDate in
-                let year = calendar.component(.year, from: currentDate)
-                let day = calendar.component(.day, from: currentDate)
-                let maxDay = calendar.range(of: .day, in: .month, for: calendar.date(from: DateComponents(year: year, month: month))!)?.count ?? 1
-                let components = DateComponents(year: year, month: month, day: min(day, maxDay))
+            .withLatestFrom(selectedDate) { month, currentDate -> Date in
+                let calendar = dateProvider.calendar
+                let currentYear = calendar.component(.year, from: currentDate)
+                let currentDay = calendar.component(.day, from: currentDate)
+                
+                guard let targetMonthDate = calendar.date(from: DateComponents(year: currentYear, month: month)) else {
+                    return currentDate
+                }
+                let maxDay = calendar.range(of: .day, in: .month, for: targetMonthDate)?.count ?? 1
+                let adjustedDay = min(currentDay, maxDay)
+                
+                let components = DateComponents(year: currentYear, month: month, day: adjustedDay)
                 return calendar.date(from: components) ?? currentDate
             }
             .bind { [selectDateObserver, hidePickerObserver] newDate in
