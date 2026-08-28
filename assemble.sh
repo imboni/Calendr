@@ -25,7 +25,7 @@ get_build_setting() {
     echo "$BUILD_SETTINGS" | awk -v key="$1" -F ' = ' '$1 == "    " key { print $2; exit }'
 }
 
-if has_xcode; then
+if has_xcode && [[ "${SKIP_XCODE_SETTINGS:-}" != "1" ]]; then
     echo -e "\n🔧 Xcode detected — generating assemble.env from Calendr.xcodeproj\n"
 
     BUILD_SETTINGS=$(xcodebuild -showBuildSettings \
@@ -40,6 +40,8 @@ if has_xcode; then
         echo "CURRENT_PROJECT_VERSION=$(get_build_setting CURRENT_PROJECT_VERSION)"
         echo "MACOSX_DEPLOYMENT_TARGET=$(get_build_setting MACOSX_DEPLOYMENT_TARGET)"
     } > assemble.env
+elif [[ "${SKIP_XCODE_SETTINGS:-}" == "1" ]]; then
+    echo -e "\n⏭️  SKIP_XCODE_SETTINGS=1 — using existing assemble.env\n"
 fi
 
 if [[ ! -f assemble.env ]]; then
@@ -52,7 +54,7 @@ source assemble.env
 set +a
 
 # Generate app icon
-if has_xcode; then
+if has_xcode && [[ "${SKIP_XCODE_SETTINGS:-}" != "1" ]]; then
     echo -e "\n🔧 Xcode detected — generating AppIcon.icns\n"
 
     mkdir -p .build/resources
@@ -67,6 +69,8 @@ if has_xcode; then
         > /dev/null
 
     cp .build/resources/AppIcon.icns resources/
+elif [[ "${SKIP_XCODE_SETTINGS:-}" == "1" ]]; then
+    echo -e "\n⏭️  SKIP_XCODE_SETTINGS=1 — skipping actool; using resources/AppIcon.icns if present\n"
 fi
 
 # Build the Binary

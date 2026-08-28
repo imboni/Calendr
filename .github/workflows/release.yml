@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release, e.g. v1.25.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-26
+    env:
+      SKIP_XCODE_SETTINGS: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "name=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build app
+        run: |
+          chmod +x assemble.sh
+          ./assemble.sh release
+
+      - name: Zip
+        run: |
+          ditto -c -k --keepParent .build/Calendr.app Calendr.zip
+          echo "sha256=$(shasum -a 256 Calendr.zip | awk '{ print $1 }')" >> "$GITHUB_OUTPUT"
+        id: zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.name }}
+          name: ${{ steps.tag.outputs.name }}
+          files: Calendr.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+      - name: Update Homebrew cask
+        run: |
+          VERSION="${{ steps.tag.outputs.name }}"
+          SHA="${{ steps.zip.outputs.sha256 }}"
+          python3 - << PY
+          from pathlib import Path
+          p = Path("Casks/calendr.rb")
+          text = p.read_text()
+          import re
+          text = re.sub(r'version ".*"', f'version "{VERSION}"', text, count=1)
+          text = re.sub(r'sha256 .*', f'sha256 "{SHA}"', text, count=1)
+          p.write_text(text)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/calendr.rb
+          if git diff --cached --quiet; then
+            echo "Cask already up to date"
+          else
+            git commit -m "Update Homebrew cask to ${VERSION}"
+            git push origin HEAD:master
+          fi

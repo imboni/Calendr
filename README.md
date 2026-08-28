@@ -2,11 +2,33 @@
 
 我在 [pakerwreah/Calendr](https://github.com/pakerwreah/Calendr) 的基础上维护本中国版，面向中文用户补充农历、节假日与二十四节气。本仓库并非原作者的官方发行，相关改动亦未提交至上游。
 
+[![release](https://img.shields.io/github/v/release/imboni/Calendr?label=Latest%20release)](https://github.com/imboni/Calendr/releases/latest)
+[![homebrew](https://img.shields.io/badge/Homebrew_cask-gray?logo=homebrew&logoColor=ffdd00)](https://github.com/imboni/Calendr/blob/master/Casks/calendr.rb)
+
 - **原作者：** [Carlos Enumo (pakerwreah)](https://github.com/pakerwreah)
 - **原项目：** https://github.com/pakerwreah/Calendr
 - **中国版：** https://github.com/imboni/Calendr
 
-原作以 MIT 许可证发布。本仓库保留原版权声明；中国版改动的版权归我所有。如需支持原作，请前往 [原仓库](https://github.com/pakerwreah/Calendr) 或 [Buy Me a Coffee](https://buymeacoffee.com/pakerwreah)。
+原作以 MIT 许可证发布。本仓库保留原版权声明。如需支持原作，请前往 [原仓库](https://github.com/pakerwreah/Calendr) 或 [Buy Me a Coffee](https://buymeacoffee.com/pakerwreah)。
+
+## 安装
+
+### GitHub Release
+
+从 [Releases](https://github.com/imboni/Calendr/releases/latest) 下载 `Calendr.zip`，将 `Calendr.app` 拖入「应用程序」。首次打开若被拦截，可在 Finder 中右键选择「打开」，或执行：
+
+```bash
+xattr -cr /Applications/Calendr.app
+```
+
+应用内检查更新会读取本仓库的最新 Release。
+
+### Homebrew
+
+```bash
+brew tap imboni/calendr https://github.com/imboni/Calendr
+brew install --cask calendr
+```
 
 ## 界面
 
@@ -18,9 +40,22 @@
 - 可显示中国大陆节假日名称，法定休息日辅以浅色底纹
 - 二十四节气按北京时间计算，仅标注于当日
 - 菜单栏日期可附带农历
+- 点击标题年份选择年份，点击日期选择月份；选年时左右箭头按 12 年翻页
 - 设置中可分别开关农历、节假日与节气；全部关闭时，格子布局与原作一致
 
 上述选项默认开启。
+
+## 版本与发布
+
+版本号为 `MARKETING_VERSION`（当前 1.25.0）。GitHub Release 名称为 `v` 前缀，须与应用内版本一致（例如 `v1.25.0`），以便应用内检查更新。
+
+发布流程：
+
+1. 同步更新 `assemble.env` 与 Xcode 工程中的 `MARKETING_VERSION`
+2. 打 tag 并推送：`git tag v1.25.0 && git push origin v1.25.0`
+3. GitHub Actions `Release` 工作流会构建 `Calendr.app`、上传 `Calendr.zip`，并更新 `Casks/calendr.rb` 的版本与校验和
+
+请勿将中国版改动向上游提交。
 
 ## 原作功能
 

@@ -5,31 +5,17 @@
 
 import AppKit
 
-class MonthPickerView: NSView {
+class MonthPickerView: PickerGridView {
 
     init(currentMonth: Int, calendar: Calendar, onMonthSelected: @escaping (Int) -> Void) {
-        super.init(frame: .zero)
         _ = calendar
-
-        wantsLayer = true
-        layer?.backgroundColor = NSColor.textBackgroundColor.cgColor
-
-        let titles = (1...12).map { "\($0)月" }
-        let grid = PickerGridView(
+        super.init(
             columns: 3,
-            titles: titles,
+            titles: (1...12).map { "\($0)月" },
             currentIndex: currentMonth - 1
         ) { index in
             onMonthSelected(index + 1)
         }
-
-        addSubview(grid)
-        grid.edges(equalTo: self)
-    }
-
-    override func updateLayer() {
-        super.updateLayer()
-        layer?.backgroundColor = NSColor.textBackgroundColor.cgColor
     }
 
     required init?(coder: NSCoder) {

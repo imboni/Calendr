@@ -77,6 +77,11 @@ class CalendarView: NSView {
             .disposed(by: disposeBag)
     }
 
+    func setPickerCovered(_ covered: Bool) {
+        gridView?.isHidden = covered
+        outlineLayer.opacity = covered ? 0 : 1
+    }
+
     private func setUpGridLayout(_ weekCount: Int) {
 
         gridView?.removeFromSuperview()

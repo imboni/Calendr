@@ -364,12 +364,22 @@ class MainViewController: NSViewController {
             mainViewModel.hidePickerObserver.onNext(())
         }.disposed(by: disposeBag)
 
-        prevBtn.rx.tap.bind { [mainViewModel] in
+        prevBtn.rx.tap.bind { [weak self] in
+            guard let self else { return }
+            if case .year = mainViewModel.currentPickerMode, let yearPicker = pickerView as? YearPickerView {
+                yearPicker.showPreviousPage()
+                return
+            }
             mainViewModel.prevMonthObserver.onNext(())
             mainViewModel.hidePickerObserver.onNext(())
         }.disposed(by: disposeBag)
 
-        nextBtn.rx.tap.bind { [mainViewModel] in
+        nextBtn.rx.tap.bind { [weak self] in
+            guard let self else { return }
+            if case .year = mainViewModel.currentPickerMode, let yearPicker = pickerView as? YearPickerView {
+                yearPicker.showNextPage()
+                return
+            }
             mainViewModel.nextMonthObserver.onNext(())
             mainViewModel.hidePickerObserver.onNext(())
         }.disposed(by: disposeBag)
@@ -1113,7 +1123,7 @@ class MainViewController: NSViewController {
     private func updatePickerView(mode: MainViewModel.PickerMode) {
         pickerView?.removeFromSuperview()
         pickerView = nil
-
+        calendarView.setPickerCovered(false)
 
         guard mode != .none else { return }
 
@@ -1139,8 +1149,10 @@ class MainViewController: NSViewController {
             return
         }
 
-        calendarView.addSubview(picker)
+        guard let host = calendarView.superview else { return }
+        host.addSubview(picker, positioned: .above, relativeTo: calendarView)
         picker.edges(equalTo: calendarView)
+        calendarView.setPickerCovered(true)
         pickerView = picker
     }
 
