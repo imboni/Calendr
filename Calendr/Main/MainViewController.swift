@@ -32,6 +32,7 @@ class MainViewController: NSViewController {
     private let eventListView: EventListView
     private let yearLabel: ClickableLabel
     private let titleLabel: ClickableLabel
+    private let inlineYearLabel: ClickableLabel
     private let searchInput = NSSearchField()
     private let searchInputSuggestionView = SearchSuggestionView()
     private let prevBtn = ImageButton()
@@ -182,6 +183,7 @@ class MainViewController: NSViewController {
 
         yearLabel = ClickableLabel(scaling: calendarViewModel.textScaling)
         titleLabel = ClickableLabel(scaling: calendarViewModel.textScaling)
+        inlineYearLabel = ClickableLabel(scaling: calendarViewModel.textScaling)
 
         let eventListEventsObservable = calendarViewModel.eventListObservable
             .debounce(.milliseconds(50), scheduler: MainScheduler.instance)
@@ -389,8 +391,9 @@ class MainViewController: NSViewController {
             .disposed(by: disposeBag)
 
         settingsViewModel.showLunarCalendar
-            .bind { [titleLabel] showLunar in
+            .bind { [titleLabel, inlineYearLabel] showLunar in
                 titleLabel.font = .systemFont(ofSize: showLunar ? 12 : 14, weight: .medium)
+                inlineYearLabel.font = .systemFont(ofSize: 14, weight: .medium)
             }
             .disposed(by: disposeBag)
 
@@ -401,6 +404,15 @@ class MainViewController: NSViewController {
         calendarViewModel.yearTitle
             .map(\.isEmpty)
             .bind(to: yearLabel.rx.isHidden)
+            .disposed(by: disposeBag)
+
+        calendarViewModel.compactYearTitle
+            .bind(to: inlineYearLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        calendarViewModel.compactYearTitle
+            .map(\.isEmpty)
+            .bind(to: inlineYearLabel.rx.isHidden)
             .disposed(by: disposeBag)
 
         calendarViewModel.title
@@ -415,6 +427,8 @@ class MainViewController: NSViewController {
                 mainViewModel.showYearPickerObserver.onNext(())
             }
         }
+
+        inlineYearLabel.onClick = yearLabel.onClick
 
         titleLabel.onClick = { [weak self] in
             guard let self else { return }
@@ -1097,6 +1111,8 @@ class MainViewController: NSViewController {
         yearLabel.textColor = .secondaryLabelColor
 
         titleLabel.textColor = .headerTextColor
+        inlineYearLabel.textColor = .headerTextColor
+        inlineYearLabel.font = .systemFont(ofSize: 14, weight: .medium)
 
         [prevBtn, resetBtn, nextBtn].forEach { $0.size(equalTo: 22) }
 
@@ -1110,9 +1126,10 @@ class MainViewController: NSViewController {
         nextBtn.toolTip = Strings.Tooltips.Navigation.nextMonth
 
         let dateRow = NSStackView(views: [
-            titleLabel, .spacer, prevBtn, resetBtn, nextBtn
+            titleLabel, inlineYearLabel, .spacer, prevBtn, resetBtn, nextBtn
         ])
         .with(spacing: 0)
+        dateRow.setCustomSpacing(4, after: titleLabel)
 
         return NSStackView(views: [yearLabel, dateRow])
             .with(orientation: .vertical)

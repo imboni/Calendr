@@ -153,11 +153,17 @@ class CalendarViewModelTests {
     @Test func testTitle() {
 
         var titles: [String] = []
+        var compactYears: [String] = []
 
         settings.toggleLunarCalendar.onNext(false)
 
         viewModel.title.bind {
             titles.append($0)
+        }
+        .disposed(by: disposeBag)
+
+        viewModel.compactYearTitle.bind {
+            compactYears.append($0)
         }
         .disposed(by: disposeBag)
 
@@ -168,7 +174,8 @@ class CalendarViewModelTests {
         dateSubject.onNext(.make(year: 2021, month: 1, day: 2))
         dateSubject.onNext(.make(year: 2021, month: 2, day: 1))
 
-        #expect(titles == ["Janv. 2021", "Févr. 2021"])
+        #expect(titles == ["Janv.", "Févr."])
+        #expect(compactYears == ["2021"])
     }
 
     @Test func testMonthSpan() throws {
