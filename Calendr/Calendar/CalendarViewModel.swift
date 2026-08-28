@@ -69,6 +69,35 @@ class CalendarViewModel {
         .distinctUntilChanged()
         .share(replay: 1)
 
+        let yearFormatterObservable = calendarUpdated
+            .map { calendar in
+                DateFormatter(format: "yyyy", calendar: calendar)
+            }
+            .share(replay: 1)
+
+        yearTitle = Observable.combineLatest(
+            yearFormatterObservable, dateObservable
+        )
+        .map { formatter, date in
+            let yearString = formatter.string(from: date)
+            return Locale.current.identifier.hasPrefix("zh") ? "\(yearString)年" : yearString
+        }
+        .distinctUntilChanged()
+        .share(replay: 1)
+
+        let monthDayFormatterObservable = calendarUpdated
+            .map { calendar in
+                DateFormatter(format: "M月d日", calendar: calendar)
+            }
+            .share(replay: 1)
+
+        dateTitle = Observable.combineLatest(
+            monthDayFormatterObservable, dateObservable
+        )
+        .map { $0.string(from: $1) }
+        .distinctUntilChanged()
+        .share(replay: 1)
+
         weekDays = Observable
             .combineLatest(settings.highlightedWeekdays, calendarUpdated)
             .map { highlightedWeekdays, calendar in

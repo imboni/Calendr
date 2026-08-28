@@ -10,6 +10,12 @@ import RxSwift
 
 class MainViewModel {
 
+    enum PickerMode: Equatable {
+        case none
+        case year
+        case month
+    }
+
     enum UpdateAction: Equatable {
         case openSettings(SettingsTab)
         case installUpdate
@@ -46,6 +52,11 @@ class MainViewModel {
     let keyboardModifiersObserver: AnyObserver<NSEvent.ModifierFlags>
     let openCalendarDateObserver: AnyObserver<Date>
     let openCalendarObserver: AnyObserver<Void>
+    let showYearPickerObserver: AnyObserver<Void>
+    let showMonthPickerObserver: AnyObserver<Void>
+    let hidePickerObserver: AnyObserver<Void>
+    let selectYearObserver: AnyObserver<Int>
+    let selectMonthObserver: AnyObserver<Int>
 
     let selectedDate: Observable<Date>
     let refreshDate: Observable<Void>
@@ -59,11 +70,13 @@ class MainViewModel {
     let updateAction: Observable<UpdateAction>
     let showMainPopover: Observable<Void>
     let keyboardModifiers: Observable<NSEvent.ModifierFlags>
+    let pickerMode: Observable<PickerMode>
 
     let isShowingDetailsModal = BehaviorSubject(value: false)
 
     var currentSelectedDate: Date { selectedDateSubject.current }
     var currentSearchInputSuggestion: DateSuggestionResult? { searchInputSuggestionSubject.current }
+    var currentPickerMode: PickerMode { pickerModeSubject.current }
 
     var createMenuItems: [CreateMenuItem] {
         let formatter = RelativeDateTimeFormatter()
@@ -97,9 +110,15 @@ class MainViewModel {
     private let openCalendar: Observable<Void>
     private let searchInputFocus: Observable<Bool>
     private let searchInputHiddenSubject = BehaviorSubject(value: true)
+    private let showYearPicker: Observable<Void>
+    private let showMonthPicker: Observable<Void>
+    private let hidePicker: Observable<Void>
+    private let selectYear: Observable<Int>
+    private let selectMonth: Observable<Int>
 
     private let selectedDateSubject: BehaviorSubject<Date>
     private let searchInputSuggestionSubject = BehaviorSubject<DateSuggestionResult?>(value: nil)
+    private let pickerModeSubject = BehaviorSubject<PickerMode>(value: .none)
 
     private let dateProvider: DateProviding
 
@@ -135,8 +154,26 @@ class MainViewModel {
         (openCalendarDate, openCalendarDateObserver) = PublishSubject.pipe()
         (openCalendar, openCalendarObserver) = PublishSubject.pipe()
         (keyboardModifiers, keyboardModifiersObserver) = BehaviorSubject.pipe(value: [])
+        (showYearPicker, showYearPickerObserver) = PublishSubject.pipe()
+        (showMonthPicker, showMonthPickerObserver) = PublishSubject.pipe()
+        (hidePicker, hidePickerObserver) = PublishSubject.pipe()
+        (selectYear, selectYearObserver) = PublishSubject.pipe()
+        (selectMonth, selectMonthObserver) = PublishSubject.pipe()
 
         selectedDateSubject = BehaviorSubject(value: dateProvider.now)
+
+        Observable
+            .merge(
+                showYearPicker.map { .year },
+                showMonthPicker.map { .month },
+                Observable.merge(hidePicker, viewDidDisappear).map { .none }
+            )
+            .bind(to: pickerModeSubject)
+            .disposed(by: disposeBag)
+
+        pickerMode = pickerModeSubject
+            .distinctUntilChanged()
+            .share(replay: 1)
 
         let refreshFromDisappear = viewDidDisappear
             .withLatestFrom(settings.preserveSelectedDate)
@@ -308,6 +345,38 @@ class MainViewModel {
 
         deeplinkDate
             .bind(to: selectDateObserver)
+            .disposed(by: disposeBag)
+
+        selectYear
+            .withLatestFrom(selectedDate) { year, currentDate in
+                let components = DateComponents(
+                    year: year,
+                    month: calendar.component(.month, from: currentDate),
+                    day: min(
+                        calendar.component(.day, from: currentDate),
+                        calendar.range(of: .day, in: .month, for: calendar.date(from: DateComponents(year: year, month: calendar.component(.month, from: currentDate)))!)?.count ?? 1
+                    )
+                )
+                return calendar.date(from: components) ?? currentDate
+            }
+            .bind { [selectDateObserver, hidePickerObserver] newDate in
+                selectDateObserver.onNext(newDate)
+                hidePickerObserver.onNext(())
+            }
+            .disposed(by: disposeBag)
+
+        selectMonth
+            .withLatestFrom(selectedDate) { month, currentDate in
+                let year = calendar.component(.year, from: currentDate)
+                let day = calendar.component(.day, from: currentDate)
+                let maxDay = calendar.range(of: .day, in: .month, for: calendar.date(from: DateComponents(year: year, month: month))!)?.count ?? 1
+                let components = DateComponents(year: year, month: month, day: min(day, maxDay))
+                return calendar.date(from: components) ?? currentDate
+            }
+            .bind { [selectDateObserver, hidePickerObserver] newDate in
+                selectDateObserver.onNext(newDate)
+                hidePickerObserver.onNext(())
+            }
             .disposed(by: disposeBag)
     }
 

@@ -32,6 +32,9 @@ class MainViewController: NSViewController {
     private let eventListView: EventListView
     private let yearLabel: Label
     private let titleLabel: Label
+    private let yearLabel: ClickableLabel
+    private let dateLabel: ClickableLabel
+    private let titleStackView = NSStackView()
     private let searchInput = NSSearchField()
     private let searchInputSuggestionView = SearchSuggestionView()
     private let prevBtn = ImageButton()
@@ -42,6 +45,7 @@ class MainViewController: NSViewController {
     private let remindersBtn = ImageButton()
     private let calendarBtn = ImageButton()
     private let settingsBtn = ImageButton()
+    private var pickerView: NSView?
 
     // ViewModels
     private let mainViewModel: MainViewModel
@@ -181,6 +185,8 @@ class MainViewController: NSViewController {
 
         yearLabel = Label(scaling: calendarViewModel.textScaling)
         titleLabel = Label(scaling: calendarViewModel.textScaling)
+        yearLabel = ClickableLabel(scaling: calendarViewModel.textScaling)
+        dateLabel = ClickableLabel(scaling: calendarViewModel.textScaling)
 
         let eventListEventsObservable = calendarViewModel.eventListObservable
             .debounce(.milliseconds(50), scheduler: MainScheduler.instance)
@@ -358,9 +364,20 @@ class MainViewController: NSViewController {
             .bind(to: NSApp.rx.appearance)
             .disposed(by: disposeBag)
 
-        resetBtn.rx.tap.bind(to: mainViewModel.resetObserver).disposed(by: disposeBag)
-        prevBtn.rx.tap.bind(to: mainViewModel.prevMonthObserver).disposed(by: disposeBag)
-        nextBtn.rx.tap.bind(to: mainViewModel.nextMonthObserver).disposed(by: disposeBag)
+        resetBtn.rx.tap.bind { [mainViewModel] in
+            mainViewModel.resetObserver.onNext(())
+            mainViewModel.hidePickerObserver.onNext(())
+        }.disposed(by: disposeBag)
+
+        prevBtn.rx.tap.bind { [mainViewModel] in
+            mainViewModel.prevMonthObserver.onNext(())
+            mainViewModel.hidePickerObserver.onNext(())
+        }.disposed(by: disposeBag)
+
+        nextBtn.rx.tap.bind { [mainViewModel] in
+            mainViewModel.nextMonthObserver.onNext(())
+            mainViewModel.hidePickerObserver.onNext(())
+        }.disposed(by: disposeBag)
 
         calendarBtn.rx.tap
             .bind(to: mainViewModel.openCalendarObserver)
@@ -383,6 +400,39 @@ class MainViewController: NSViewController {
 
         calendarViewModel.title
             .bind(to: titleLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        calendarViewModel.yearTitle
+            .bind(to: yearLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        calendarViewModel.dateTitle
+            .bind(to: dateLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        yearLabel.onClick = { [weak self] in
+            guard let self else { return }
+            if case .year = mainViewModel.currentPickerMode {
+                mainViewModel.hidePickerObserver.onNext(())
+            } else {
+                mainViewModel.showYearPickerObserver.onNext(())
+            }
+        }
+
+        dateLabel.onClick = { [weak self] in
+            guard let self else { return }
+            if case .month = mainViewModel.currentPickerMode {
+                mainViewModel.hidePickerObserver.onNext(())
+            } else {
+                mainViewModel.showMonthPickerObserver.onNext(())
+            }
+        }
+
+        mainViewModel.pickerMode
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] mode in
+                self?.updatePickerView(mode: mode)
+            }
             .disposed(by: disposeBag)
 
         remindersBtn.rx.tap.bind { [workspace] in
@@ -866,6 +916,9 @@ class MainViewController: NSViewController {
             case .escape where searchInput.hasFocus:
                 hideSearchInput()
 
+            case .escape where mainViewModel.currentPickerMode != .none:
+                mainViewModel.hidePickerObserver.onNext(())
+
             case .enter where searchInput.hasFocus:
                 guard mainViewModel.currentSearchInputSuggestion != nil else {
                     return event
@@ -1048,6 +1101,20 @@ class MainViewController: NSViewController {
 
         titleLabel.textColor = .headerTextColor
 
+        yearLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        yearLabel.textColor = .headerTextColor
+        yearLabel.alignment = .center
+
+        dateLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        dateLabel.textColor = .headerTextColor
+        dateLabel.alignment = .center
+
+        titleStackView.orientation = .vertical
+        titleStackView.spacing = 2
+        titleStackView.alignment = .centerX
+        titleStackView.addArrangedSubview(yearLabel)
+        titleStackView.addArrangedSubview(dateLabel)
+
         [prevBtn, resetBtn, nextBtn].forEach { $0.size(equalTo: 22) }
 
         prevBtn.image = Icons.Calendar.prev
@@ -1068,6 +1135,43 @@ class MainViewController: NSViewController {
             .with(orientation: .vertical)
             .with(alignment: .width)
             .with(spacing: 1)
+    }
+
+    private func updatePickerView(mode: MainViewModel.PickerMode) {
+        pickerView?.removeFromSuperview()
+        pickerView = nil
+
+        calendarView.isHidden = mode != .none
+
+        guard mode != .none else { return }
+
+        let calendar = dateProvider.calendar
+        let currentDate = mainViewModel.currentSelectedDate
+
+        let picker: NSView
+
+        switch mode {
+        case .year:
+            let currentYear = calendar.component(.year, from: currentDate)
+            picker = YearPickerView(currentYear: currentYear) { [weak self] year in
+                self?.mainViewModel.selectYearObserver.onNext(year)
+            }
+
+        case .month:
+            let currentMonth = calendar.component(.month, from: currentDate)
+            picker = MonthPickerView(currentMonth: currentMonth, calendar: calendar) { [weak self] month in
+                self?.mainViewModel.selectMonthObserver.onNext(month)
+            }
+
+        case .none:
+            return
+        }
+
+        if let calendarContainer = calendarView.superview {
+            calendarContainer.addSubview(picker)
+            picker.edges(equalTo: calendarContainer)
+            pickerView = picker
+        }
     }
 
     private func makeToolBar() -> NSView {
