@@ -47,12 +47,12 @@ brew install --cask calendr
 
 ## 版本与发布
 
-版本号为 `MARKETING_VERSION`（当前 1.25.0）。GitHub Release 名称为 `v` 前缀，须与应用内版本一致（例如 `v1.25.0`），以便应用内检查更新。
+版本号为 `MARKETING_VERSION`（当前 1.25.1）。GitHub Release 名称为 `v` 前缀，须与应用内版本一致（例如 `v1.25.1`），以便应用内检查更新。
 
 发布流程：
 
 1. 同步更新 `assemble.env` 与 Xcode 工程中的 `MARKETING_VERSION`
-2. 打 tag 并推送：`git tag v1.25.0 && git push origin v1.25.0`
+2. 打 tag 并推送：`git tag v1.25.1 && git push origin v1.25.1`
 3. GitHub Actions `Release` 工作流会构建 `Calendr.app`、上传 `Calendr.zip`，并更新 `Casks/calendr.rb` 的版本与校验和
 
 请勿将中国版改动向上游提交。
