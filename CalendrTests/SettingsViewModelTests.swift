@@ -322,6 +322,7 @@ class SettingsViewModelTests {
 
     @Test func testDateFormatOptions() {
 
+        localStorage.statusItemLunarDateEnabled = false
         dateProvider.m_calendar.locale = Locale(identifier: "en_US")
 
         let options = viewModel.dateFormatOptions.lastValue()
@@ -337,6 +338,7 @@ class SettingsViewModelTests {
 
     @Test func testDateFormatOptions_withLocaleChange() {
 
+        localStorage.statusItemLunarDateEnabled = false
         dateProvider.m_calendar.locale = Locale(identifier: "en_US")
 
         var options: [SettingsViewModel.DateFormatOption]?
@@ -352,6 +354,16 @@ class SettingsViewModelTests {
         notificationCenter.post(name: NSLocale.currentLocaleDidChangeNotification, object: nil)
 
         #expect(options?.first == .init(style: .short, title: "01/01/2021"))
+    }
+
+    @Test func testDateFormatOptions_withLunarDate() {
+        localStorage.statusItemLunarDateEnabled = true
+        dateProvider.m_calendar.locale = Locale(identifier: "en_US")
+        let options = viewModel.dateFormatOptions.lastValue()
+        #expect(options?.first?.style == .short)
+        #expect(options?.first?.title.hasPrefix("1/1/21 ") == true)
+        #expect(options?.first?.title != "1/1/21")
+        #expect(options?.last?.title == "Custom")
     }
 
     @Test func testEventDotsStyle() {
