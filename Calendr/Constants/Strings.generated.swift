@@ -287,6 +287,8 @@ internal enum Strings {
       internal static let showMonthOutline = Strings.tr("Localizable", "settings.calendar.show_month_outline", fallback: "Show month outline")
       /// Show week numbers
       internal static let showWeekNumbers = Strings.tr("Localizable", "settings.calendar.show_week_numbers", fallback: "Show week numbers")
+      /// Show Chinese lunar dates
+      internal static let showLunarCalendar = Strings.tr("Localizable", "settings.calendar.show_lunar_calendar", fallback: "Show Chinese lunar dates")
       /// Visible weeks
       internal static let weekCount = Strings.tr("Localizable", "settings.calendar.week_count", fallback: "Visible weeks")
       internal enum EventDots {
