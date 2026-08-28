@@ -2,3 +2,7 @@
 xcuserdata
 .build
 Config.local.xcconfig
+
+.agents/
+.sourcekit-lsp/
+.vscode/
