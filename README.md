@@ -1,6 +1,6 @@
 # Calendr 中国版
 
-我在 [pakerwreah/Calendr](https://github.com/pakerwreah/Calendr) 的基础上维护本中国版，面向中文用户补充农历、节假日与二十四节气。本仓库并非原作者的官方发行，相关改动亦未提交至上游。
+我在 [pakerwreah/Calendr](https://github.com/pakerwreah/Calendr) 的基础上维护本中国版，面向中文用户补充农历、节假日与二十四节气。本仓库并非原作者的官方发行。
 
 [![release](https://img.shields.io/github/v/release/imboni/Calendr?label=Latest%20release)](https://github.com/imboni/Calendr/releases/latest)
 [![homebrew](https://img.shields.io/badge/Homebrew_cask-gray?logo=homebrew&logoColor=ffdd00)](https://github.com/imboni/Calendr/blob/master/Casks/calendr.rb)
@@ -36,14 +36,14 @@ brew install --cask calendr
 
 ## 相对原作的改动
 
-- 月视图日期格显示农历；每月初一以农历月份名标示
-- 可显示中国大陆节假日名称，法定休息日辅以浅色底纹
-- 二十四节气按北京时间计算，仅标注于当日
-- 菜单栏日期可附带农历
-- 点击标题年份选择年份，点击日期选择月份；选年时左右箭头按 12 年翻页
-- 设置中可分别开关农历、节假日与节气；全部关闭时，格子布局与原作一致
+原作已于 [v1.25.0](https://github.com/pakerwreah/Calendr/releases/tag/v1.25.0)（2026-08-30）加入中文农历日期（日期格与菜单栏）及二十四节气，两项功能均可独立开关，默认对中文区域开启；相关实现来自 [#759](https://github.com/pakerwreah/Calendr/pull/759)。
 
-上述选项默认开启。
+本中国版在此基础上继续提供以下功能：
+
+- **中国大陆节假日名称：** 日期格可显示节假日，法定休息日辅以浅色底纹
+- **年份与月份选择器：** 点击标题年份选择年份，点击日期选择月份；选年时左右箭头按 12 年翻页
+- **农历、节假日、节气分项开关：** 设置中可分别控制；全部关闭时，日期格布局与原作关闭农历时一致
+- **默认开启：** 本版中上述选项默认开启
 
 ## 版本与发布
 
@@ -55,7 +55,7 @@ brew install --cask calendr
 2. 打 tag 并推送：`git tag v1.25.1 && git push origin v1.25.1`
 3. GitHub Actions `Release` 工作流会构建 `Calendr.app`、上传 `Calendr.zip`，并更新 `Casks/calendr.rb` 的版本与校验和
 
-请勿将中国版改动向上游提交。
+其余功能（节假日与年月选择器）仅维护于本仓库。
 
 ## 原作功能
 
