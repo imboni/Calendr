@@ -1036,34 +1036,7 @@ class MainViewController: NSViewController {
 
     private func setUpYearMonthPicker() {
 
-        let titleMenu = NSMenu()
-
-        let monthPicker = MonthPickerViewController(dateProvider: dateProvider)
-        addChild(monthPicker)
-
-        let menuItem = NSMenuItem()
-        menuItem.view = monthPicker.view.forAutoLayout()
-        titleMenu.items = [menuItem]
-
-        titleLabel.rx.tap
-            .withLatestFrom(mainViewModel.selectedDate)
-            .bind { [titleLabel] selectedDate in
-
-                titleLabel.isHighlighted = false
-
-                monthPicker.update(with: selectedDate)
-                monthPicker.view.layoutSubtreeIfNeeded()
-
-                let centerX = titleLabel.bounds.midX - monthPicker.view.bounds.midX
-                let point = CGPoint(x: centerX, y: 0)
-
-                titleMenu.popUp(positioning: nil, at: point, in: titleLabel)
-            }
-            .disposed(by: disposeBag)
-
-        monthPicker.onSelect = { [mainViewModel] selected in
-            mainViewModel.select(year: selected.year, month: selected.month)
-        }
+        // Keep our custom overlay year/month pickers; don't use upstream's title-based picker
     }
 
     // MARK: - Factories
