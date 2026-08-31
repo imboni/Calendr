@@ -64,7 +64,6 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
     private let showMapCheckbox = Checkbox(title: Strings.Settings.Events.showMap)
     private let mapBlacklistButton = ImageButton(image: Icons.Settings.blacklist)
     private let showFinishedEventsCheckbox = Checkbox(title: Strings.Settings.Events.showFinishedEvents)
-    private let showDeclinedEventsCheckbox = Checkbox(title: Strings.Settings.Calendar.showDeclinedEvents)
     private let showOverdueCheckbox = Checkbox(title: Strings.Settings.Events.showOverdueReminders)
     private let showAllDayEventsCheckbox = Checkbox(title: Strings.Settings.Events.showAllDayEvents)
     private let showAllDayDetailsCheckbox = Checkbox(title: Strings.Settings.Events.showAllDayDetails)

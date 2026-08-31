@@ -90,7 +90,8 @@ class CalendarCellView: NSView {
         addSubview(contentStackView)
 
         contentStackView.center(in: self)
-        contentStackView.size(lessThanOrEqualTo: self)
+        contentStackView.width(lessThanOrEqualTo: self)
+        contentStackView.height(lessThanOrEqualTo: self)
     }
 
     private func updateBorderLayer() {
