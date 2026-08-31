@@ -48,7 +48,7 @@ class CalendarViewModel {
         .map { date, calendar, showLunar -> String in
             if showLunar {
                 let monthDay = DateFormatter(format: "M月d日", calendar: calendar).string(from: date)
-                if let lunar = chineseLunarFullDateString(from: date, calendar: calendar), !lunar.isEmpty {
+                if let lunar = ChineseLunarDate(from: date)?.fullText, !lunar.isEmpty {
                     return monthDay + " " + lunar
                 }
                 return monthDay
