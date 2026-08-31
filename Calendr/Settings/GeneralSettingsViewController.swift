@@ -204,6 +204,10 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
 
         let is26 = if #available(macOS 26.0, *) { true } else { false }
 
+        let showDeclinedEventsTooltip = makeToolTip(
+            Strings.Settings.Calendar.showDeclinedEventsTooltip
+        ).disposed(by: disposeBag)
+
         return NSStackView(views: [
             NSStackView(views: [firstWeekdayPrev, highlightedWeekdaysButtons, firstWeekdayNext])
                 .with(distribution: .fillProportionally),

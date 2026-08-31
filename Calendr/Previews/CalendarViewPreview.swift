@@ -17,8 +17,8 @@ struct CalendarViewPreview: PreviewProvider {
     static let settings = MockCalendarSettings(
         firstWeekday: 1,
         highlightedWeekdays: [0, 1, 4, 6],
-        calendarScaling: 1.5,
-        showWeekNumbers: true
+        showWeekNumbers: true,
+        calendarScaling: 1.5
     )
     static let hovered = BehaviorSubject<Date?>(value: .random(from: dateProvider))
     static let selected = BehaviorSubject<Date>(value: .random(inMonth: dateProvider))

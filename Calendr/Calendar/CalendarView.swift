@@ -231,12 +231,11 @@ class CalendarView: NSView {
         Observable.combineLatest(
             viewModel.cellViewModelsObservable,
             viewModel.cellSize,
-            viewModel.cellHeight,
             backingScaleObservable,
             resizeObservable
         )
         .observe(on: MainScheduler.instance)
-        .compactMap { cellViewModels, _, _, backingScale, _ in
+        .compactMap { cellViewModels, _, backingScale, _ in
             gridView.layoutSubtreeIfNeeded()
             let inset = Constants.outlineInset
 
