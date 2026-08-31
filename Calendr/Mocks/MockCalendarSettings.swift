@@ -35,46 +35,6 @@ class MockCalendarSettings: CalendarSettings {
     let showSolarTerms: Observable<Bool>
     let toggleSolarTerms: AnyObserver<Bool>
 
-    let showDeclinedEvents: Observable<Bool>
-    let toggleDeclinedEvents: AnyObserver<Bool>
-
-    let showAllDayEvents: Observable<Bool>
-    let toggleAllDayEvents: AnyObserver<Bool>
-
-    let dateHoverOption: Observable<Bool>
-    let toggleDateHoverOption: AnyObserver<Bool>
-
-    let eventDotsStyle: Observable<EventDotsStyle>
-    let eventDotsStyleObserver: AnyObserver<EventDotsStyle>
-
-    let showMonthOutline: Observable<Bool>
-    let preserveSelectedDate: Observable<Bool>
-    let togglePreserveSelectedDate: AnyObserver<Bool>
-    let defaultCalendarApp: Observable<CalendarApp>
-
-    let calendarAppViewMode: Observable<CalendarViewMode>
-    let calendarAppViewModeObserver: AnyObserver<CalendarViewMode>
-
-    let calendarScaling: Observable<Double>
-    let calendarScalingObserver: AnyObserver<Double>
-
-    let calendarTextScaling: Observable<Double>
-    let calendarTextScalingObserver: AnyObserver<Double>
-
-    let textScaling: Observable<Double>
-    let textScalingObserver: AnyObserver<Double>
-
-    init(
-        calendarScaling: Double = 1,
-        textScaling: Double = 1,
-        calendarTextScaling: Double = 1,
-        firstWeekday: Int = 1,
-        highlightedWeekdays: [Int] = [0, 6],
-        showMonthOutline: Bool = false,
-        showWeekNumbers: Bool = false,
-        showLunarCalendar: Bool = true,
-        showMainlandHolidays: Bool = true,
-        showSolarTerms: Bool = true,
         weekCount: Int = 6,
         eventDotsStyle: EventDotsStyle = .multiple,
         showDeclinedEvents: Bool = false,
@@ -90,7 +50,10 @@ class MockCalendarSettings: CalendarSettings {
         (self.showWeekNumbers, toggleWeekNumbers) = BehaviorSubject.pipe(value: showWeekNumbers)
         (self.showLunarCalendar, toggleLunarCalendar) = BehaviorSubject.pipe(value: showLunarCalendar)
         (self.showMainlandHolidays, toggleMainlandHolidays) = BehaviorSubject.pipe(value: showMainlandHolidays)
+<<<<<<< HEAD
         (self.showSolarTerms, toggleSolarTerms) = BehaviorSubject.pipe(value: showSolarTerms)
+=======
+>>>>>>> upstream/master
         (self.weekCount, weekCountObserver) = BehaviorSubject.pipe(value: weekCount)
         (self.showDeclinedEvents, toggleDeclinedEvents) = BehaviorSubject.pipe(value: showDeclinedEvents)
         (self.showAllDayEvents, toggleAllDayEvents) = BehaviorSubject.pipe(value: showAllDayEvents)

@@ -64,6 +64,7 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
     private let showMapCheckbox = Checkbox(title: Strings.Settings.Events.showMap)
     private let mapBlacklistButton = ImageButton(image: Icons.Settings.blacklist)
     private let showFinishedEventsCheckbox = Checkbox(title: Strings.Settings.Events.showFinishedEvents)
+    private let showDeclinedEventsCheckbox = Checkbox(title: Strings.Settings.Calendar.showDeclinedEvents)
     private let showOverdueCheckbox = Checkbox(title: Strings.Settings.Events.showOverdueReminders)
     private let showAllDayEventsCheckbox = Checkbox(title: Strings.Settings.Events.showAllDayEvents)
     private let showAllDayDetailsCheckbox = Checkbox(title: Strings.Settings.Events.showAllDayDetails)
@@ -88,38 +89,28 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
 
         super.viewDidLoad()
 
-        let stackView = NSStackView()
-            .with(spacing: Constants.sectionSpacing)
-            .with(orientation: .horizontal)
-            .with(alignment: .top)
-            .with(distribution: .fillEqually)
-            .with(hugging: .defaultHigh, for: .horizontal)
-            .with(hugging: .required, for: .vertical)
-
-        view.addSubview(stackView)
-
-        stackView.edges(equalTo: view)
-
-        let columns = [
+        let sections = [
             [
                 makeSection(title: Strings.Settings.menuBar, content: menuBarContent),
-                makeSection(title: Strings.Settings.events, content: eventsContent),
+                makeSection(title: Strings.Settings.nextEvent, content: nextEventContent),
             ],
             [
-                makeSection(title: Strings.Settings.nextEvent, content: nextEventContent),
+                makeSection(title: Strings.Settings.events, content: eventsContent),
                 makeSection(title: Strings.Settings.calendar, content: calendarContent),
             ]
-        ]
+        ].map { $0.map { $0.disposed(by: disposeBag) }}
 
-        for column in columns {
-            let sections = Sections.create(column).disposed(by: disposeBag)
+        let gridView = NSGridView(views: sections)
+        gridView.rowSpacing = Constants.sectionSpacing
+        gridView.columnSpacing = Constants.sectionSpacing
+        gridView.xPlacement = .fill
+        gridView.yPlacement = .top
 
-            let columnStack = NSStackView(views: sections)
-                .with(spacing: Constants.sectionSpacing)
-                .with(orientation: .vertical)
+        view.addSubview(gridView)
 
-            stackView.addArrangedSubview(columnStack)
-        }
+        gridView.edges(equalTo: view)
+
+        sections[0][0].width(equalTo: sections[0][1])
 
         iconStyleDropdown.height(equalTo: showMenuBarIconCheckbox)
     }
@@ -138,16 +129,7 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
         iconStyleDropdown.setContentHuggingPriority(.required, for: .horizontal)
 
         statusItemBackgroundDropdown.isBordered = false
-
-        let iconStyle = NSStackView(views: [
-            showMenuBarIconCheckbox,
-            iconStyleDropdown
-        ])
-
-        let dateFormat = NSStackView(views: [
-            dateFormatDropdown,
-            dateFormatTextField
-        ])
+        statusItemBackgroundDropdown.setContentHuggingPriority(.required, for: .horizontal)
 
         let launchAgentTooltip = makeToolTip(
             Strings.Settings.MenuBar.launchAgentTooltip
@@ -157,12 +139,11 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
             autoLaunchCheckbox,
             NSStackView(views: [launchAgentCheckbox, launchAgentTooltip]),
             openOnHoverCheckbox,
-            iconStyle,
+            NSStackView(views: [showMenuBarIconCheckbox, iconStyleDropdown]),
             showMenuBarDateCheckbox,
             showMenuBarLunarDateCheckbox,
-            dateFormat,
+            NSStackView(views: [dateFormatDropdown, dateFormatTextField]),
             NSStackView(views: [statusItemBackgroundLabel, statusItemBackgroundDropdown]),
-            .spacer
         ])
         .with(orientation: .vertical)
     }()
@@ -222,10 +203,6 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
         weekCountStepper.refusesFirstResponder = true
         weekCountStepper.focusRingType = .none
 
-        let showDeclinedEventsTooltip = makeToolTip(
-            Strings.Settings.Calendar.showDeclinedEventsTooltip
-        ).disposed(by: disposeBag)
-
         let is26 = if #available(macOS 26.0, *) { true } else { false }
 
         return NSStackView(views: [
@@ -271,10 +248,15 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
         // Future events stack view
         let futureEventsStack = NSStackView(views: [futureEventsLabel, .spacer, futureEventsStepperLabel, futureEventsStepper])
 
+        let showDeclinedEventsTooltip = makeToolTip(
+            Strings.Settings.Calendar.showDeclinedEventsTooltip
+        ).disposed(by: disposeBag)
+
         return NSStackView(views: [
             naturalLanguageEventInputCheckbox,
             NSStackView(views: [showMapCheckbox, mapBlacklistButton]),
             showFinishedEventsCheckbox,
+            NSStackView(views: [showDeclinedEventsCheckbox, showDeclinedEventsTooltip]),
             showOverdueCheckbox,
             showAllDayEventsCheckbox,
             showAllDayDetailsCheckbox,
@@ -776,6 +758,13 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
             control: showFinishedEventsCheckbox,
             observable: viewModel.showPastEvents,
             observer: viewModel.togglePastEvents
+        )
+        .disposed(by: disposeBag)
+
+        bind(
+            control: showDeclinedEventsCheckbox,
+            observable: viewModel.showDeclinedEvents,
+            observer: viewModel.toggleDeclinedEvents
         )
         .disposed(by: disposeBag)
 

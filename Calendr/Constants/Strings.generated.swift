@@ -283,6 +283,8 @@ internal enum Strings {
       internal static let showDeclinedEvents = Strings.tr("Localizable", "settings.calendar.show_declined_events", fallback: "Show declined events")
       /// This only works if it is also enabled in the native Calendar app.
       internal static let showDeclinedEventsTooltip = Strings.tr("Localizable", "settings.calendar.show_declined_events_tooltip", fallback: "This only works if it is also enabled in the native Calendar app.")
+      /// Show lunar calendar
+      internal static let showLunarCalendar = Strings.tr("Localizable", "settings.calendar.show_lunar_calendar", fallback: "Show lunar calendar")
       /// Show month outline
       internal static let showMonthOutline = Strings.tr("Localizable", "settings.calendar.show_month_outline", fallback: "Show month outline")
       /// Show week numbers
@@ -387,6 +389,8 @@ internal enum Strings {
       internal static let showLunarDate = Strings.tr("Localizable", "settings.menu_bar.show_lunar_date", fallback: "Show lunar date")
       /// Show icon
       internal static let showIcon = Strings.tr("Localizable", "settings.menu_bar.show_icon", fallback: "Show icon")
+      /// Show lunar date
+      internal static let showLunarDate = Strings.tr("Localizable", "settings.menu_bar.show_lunar_date", fallback: "Show lunar date")
       internal enum Background {
         /// opaque
         internal static let opaque = Strings.tr("Localizable", "settings.menu_bar.background.opaque", fallback: "opaque")

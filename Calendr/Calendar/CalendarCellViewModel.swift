@@ -21,9 +21,8 @@ struct CalendarCellViewModel: Equatable {
     let events: [EventModel]
     let dotsStyle: EventDotsStyle
     let calendar: Calendar
-    let showLunarCalendar: Bool
+    let plugin: AnyCalendarCellPlugin?
     let showMainlandHolidays: Bool
-    let showSolarTerms: Bool
 }
 
 extension CalendarCellViewModel {
@@ -32,28 +31,32 @@ extension CalendarCellViewModel {
         "\(calendar.component(.day, from: date))"
     }
 
-    var lunarDate: ChineseLunarDate? {
-        guard showLunarCalendar else { return nil }
-        return chineseLunarDate(from: date, calendar: calendar)
-    }
-
-    var usesSecondaryLine: Bool { showLunarCalendar || showMainlandHolidays || showSolarTerms }
+    var usesSecondaryLine: Bool { plugin != nil || showMainlandHolidays }
 
     var holidayName: String? {
         guard showMainlandHolidays else { return nil }
         return chineseMainlandHolidayName(from: events, date: date, calendar: calendar)
     }
 
-    var solarTermText: String? {
-        guard showSolarTerms else { return nil }
-        return solarTermName(on: date, calendar: calendar)
+    var pluginText: String? {
+        holidayName ?? plugin?.text
     }
 
-    var isSolarTermDay: Bool { holidayName == nil && solarTermText != nil }
+    var pluginTextColor: NSColor? {
+        if holidayName != nil {
+            return isStatutoryRestDay
+                ? NSColor.systemRed.withAlphaComponent(0.8)
+                : NSColor.systemRed.withAlphaComponent(0.65)
+        }
+        return plugin?.textColor
+    }
 
-    var lunarText: String? { holidayName ?? solarTermText ?? lunarDate?.text }
-
-    var isLunarMonthStart: Bool { holidayName != nil || lunarDate?.isMonthStart == true }
+    var pluginFont: NSFont? {
+        if holidayName != nil {
+            return .systemFont(ofSize: 9, weight: .semibold)
+        }
+        return plugin?.font
+    }
 
     var isStatutoryRestDay: Bool {
         guard showMainlandHolidays else { return false }

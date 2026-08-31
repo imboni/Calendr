@@ -53,7 +53,7 @@ enum Prefs {
     static let defaultCalendarApp = "default_calendar_app"
     static let calendarTextScaling = "calendar_text_scaling"
     static let eventDotsStyle = "event_dots_style"
-    static let showLunarCalendar = "show_lunar_calendar"
+    static let showChineseLunarCalendar = "show_chinese_lunar_calendar"
     static let showMainlandHolidays = "show_mainland_holidays"
     static let showSolarTerms = "show_solar_terms"
 
@@ -96,7 +96,7 @@ enum Prefs {
 func registerDefaultPrefs(
     in localStorage: LocalStorageProvider,
     calendar: Calendar = .current,
-    preferredLocalizations: [String] = EventTitleParserLanguage.preferredLocalizations
+    preferredLocalizations: [String] = Localizations.preferredLocalizations
 ) {
 
     migrateStatusItemBackgroundStyle(in: localStorage)
@@ -143,7 +143,7 @@ func registerDefaultPrefs(
         Prefs.calendarAppViewMode: CalendarViewMode.month.rawValue,
         Prefs.defaultCalendarApp: CalendarApp.calendar.rawValue,
         Prefs.calendarTextScaling: 1,
-        Prefs.showLunarCalendar: true,
+        Prefs.showChineseLunarCalendar: true,
         Prefs.showMainlandHolidays: true,
         Prefs.showSolarTerms: true,
 
@@ -386,8 +386,8 @@ extension LocalStorageProvider {
     }
 
     @objc dynamic var showLunarCalendar: Bool {
-        get { bool(forKey: Prefs.showLunarCalendar) }
-        set { set(newValue, forKey: Prefs.showLunarCalendar) }
+        get { bool(forKey: Prefs.showChineseLunarCalendar) }
+        set { set(newValue, forKey: Prefs.showChineseLunarCalendar) }
     }
 
     @objc dynamic var showMainlandHolidays: Bool {

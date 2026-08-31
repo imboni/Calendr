@@ -13,6 +13,7 @@ class MockStatusItemSettings: StatusItemSettings {
 
     let toggleIcon: AnyObserver<Bool>
     let toggleDate: AnyObserver<Bool>
+    let toggleLunarDate: AnyObserver<Bool>
     let statusItemBackgroundStyleObserver: AnyObserver<StatusItemBackgroundStyle>
     let statusItemIconStyleObserver: AnyObserver<StatusItemIconStyle>
     let statusItemDateStyleObserver: AnyObserver<StatusItemDateStyle>
