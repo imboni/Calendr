@@ -415,7 +415,7 @@ class MainViewController: NSViewController {
             .disposed(by: disposeBag)
 
         calendarViewModel.title
-            .bind(to: titleLabel.rx.title)
+            .bind(to: titleLabel.rx.text)
             .disposed(by: disposeBag)
 
         yearLabel.onClick = { [weak self] in
