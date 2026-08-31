@@ -47,14 +47,6 @@ class MockCalendarSettings: CalendarSettings {
     let eventDotsStyle: Observable<EventDotsStyle>
     let eventDotsStyleObserver: AnyObserver<EventDotsStyle>
 
-    let showMonthOutline: Observable<Bool>
-    let preserveSelectedDate: Observable<Bool>
-    let togglePreserveSelectedDate: AnyObserver<Bool>
-    let defaultCalendarApp: Observable<CalendarApp>
-
-    let calendarAppViewMode: Observable<CalendarViewMode>
-    let calendarAppViewModeObserver: AnyObserver<CalendarViewMode>
-
     let calendarScaling: Observable<Double>
     let calendarScalingObserver: AnyObserver<Double>
 
@@ -64,14 +56,23 @@ class MockCalendarSettings: CalendarSettings {
     let textScaling: Observable<Double>
     let textScalingObserver: AnyObserver<Double>
 
+    let preserveSelectedDate: Observable<Bool>
+    let togglePreserveSelectedDate: AnyObserver<Bool>
+
+    let calendarAppViewMode: Observable<CalendarViewMode>
+    let calendarAppViewModeObserver: AnyObserver<CalendarViewMode>
+
+    let showMonthOutline: Observable<Bool>
+    let defaultCalendarApp: Observable<CalendarApp>
+
     init(
-        calendarScaling: Double = 1,
-        textScaling: Double = 1,
-        calendarTextScaling: Double = 1,
         firstWeekday: Int = 1,
-        highlightedWeekdays: [Int] = [0, 6],
-        showMonthOutline: Bool = false,
+        highlightedWeekdays: [Int] = [],
         showWeekNumbers: Bool = false,
+        showMonthOutline: Bool = false,
+        calendarScaling: Double = 1,
+        calendarTextScaling: Double = 1,
+        textScaling: Double = 1,
         showLunarCalendar: Bool = true,
         showMainlandHolidays: Bool = true,
         showSolarTerms: Bool = true,
@@ -82,7 +83,7 @@ class MockCalendarSettings: CalendarSettings {
         dateHoverOption: Bool = false,
         futureEventsDays: Int = 0,
         preserveSelectedDate: Bool = false,
-        calendarAppViewMode: CalendarViewMode = .month,
+        calendarAppViewMode: CalendarViewMode = .month
     ) {
         (self.futureEventsDays, futureEventsDaysObserver) = BehaviorSubject.pipe(value: futureEventsDays)
         (self.firstWeekday, firstWeekdayObserver) = BehaviorSubject.pipe(value: firstWeekday)

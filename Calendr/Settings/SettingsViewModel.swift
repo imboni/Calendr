@@ -439,7 +439,7 @@ class SettingsViewModel:
                 for option in StatusItemDateStyle.allCases {
                     dateFormatter.dateStyle = option
                     var title = dateFormatter.string(from: dateProvider.now)
-                    if showLunar, let lunar = chineseLunarFullDateString(from: dateProvider.now, calendar: dateProvider.calendar) {
+                    if showLunar, let lunar = ChineseLunarDate(from: dateProvider.now)?.fullText {
                         title += " " + lunar
                     }
                     guard !options.contains(where: { $0.title == title }) else { continue }

@@ -15,10 +15,10 @@ struct CalendarViewPreview: PreviewProvider {
     static let dateProvider = MockDateProvider()
     static let calendarService = MockCalendarServiceProvider(events: events, dateProvider: dateProvider)
     static let settings = MockCalendarSettings(
-        calendarScaling: 1.5,
         firstWeekday: 1,
         highlightedWeekdays: [0, 1, 4, 6],
-        showWeekNumbers: true
+        showWeekNumbers: true,
+        calendarScaling: 1.5
     )
     static let hovered = BehaviorSubject<Date?>(value: .random(from: dateProvider))
     static let selected = BehaviorSubject<Date>(value: .random(inMonth: dateProvider))
@@ -46,7 +46,6 @@ struct CalendarViewPreview: PreviewProvider {
             doubleClickObserver: .dummy()
         )
         .preview()
-        .fixedSize()
     }
 }
 

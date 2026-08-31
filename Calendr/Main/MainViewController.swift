@@ -1034,6 +1034,11 @@ class MainViewController: NSViewController {
 
     }
 
+    private func setUpYearMonthPicker() {
+
+        // Keep our custom overlay year/month pickers; don't use upstream's title-based picker
+    }
+
     // MARK: - Factories
 
     private func makeEventListSummary() -> NSView {
@@ -1242,5 +1247,14 @@ private extension NSMenu {
             // this is a blocking operation
             self.popUp(positioning: nil, at: .init(x: 0, y: offsetY), in: view)
         }
+    }
+}
+
+private class HeaderTitleButton: TitleButton {
+
+    override var intrinsicContentSize: NSSize {
+        var size = super.intrinsicContentSize
+        size.width -= 12 // remove default padding
+        return size
     }
 }

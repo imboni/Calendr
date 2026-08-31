@@ -110,16 +110,15 @@ class CalendarView: NSView {
 
         guard let gridView else { return }
 
-        Observable.combineLatest(viewModel.cellSize, viewModel.cellHeight)
+        viewModel.cellSize
             .observe(on: MainScheduler.instance)
-            .bind { [weak self, gridView] cellWidth, cellHeight in
-                gridView.row(at: 0).height = cellWidth
-                for row in 1..<gridView.numberOfRows {
-                    gridView.row(at: row).height = cellHeight
+            .bind { [weak self, gridView] cellSize in
+                for row in 0..<gridView.numberOfRows {
+                    gridView.row(at: row).height = cellSize.height
                 }
                 /// skip week number column, because it has dynamic width
                 for col in 1..<gridView.numberOfColumns {
-                    gridView.column(at: col).width = cellWidth
+                    gridView.column(at: col).width = cellSize.width
                 }
                 gridView.needsLayout = true
                 gridView.layoutSubtreeIfNeeded()
@@ -144,11 +143,10 @@ class CalendarView: NSView {
         Observable.combineLatest(
             viewModel.weekNumbersWidth,
             viewModel.weekDays,
-            viewModel.cellSize,
-            viewModel.cellHeight
+            viewModel.cellSize
         )
         .repeat(when: rx.updateLayer)
-        .map { offset, weekDays, cellWidth, cellHeight -> [CALayer] in
+        .map { offset, weekDays, cellSize -> [CALayer] in
 
             let weekends = weekDays
                 .enumerated()
@@ -158,10 +156,10 @@ class CalendarView: NSView {
             return IndexSet(weekends).rangeView.map { range in
                 let layer = CALayer()
                 layer.frame = CGRect(
-                    x: offset + CGFloat(range.startIndex) * cellWidth,
+                    x: offset + CGFloat(range.startIndex) * cellSize.width,
                     y: 0,
-                    width: CGFloat(range.count) * cellWidth,
-                    height: CGFloat(weekCount) * cellHeight
+                    width: CGFloat(range.count) * cellSize.width,
+                    height: CGFloat(weekCount) * cellSize.height
                 )
                 layer.backgroundColor = Colors.weekendBackground
                 layer.cornerRadius = Constants.cornerRadius
@@ -233,12 +231,11 @@ class CalendarView: NSView {
         Observable.combineLatest(
             viewModel.cellViewModelsObservable,
             viewModel.cellSize,
-            viewModel.cellHeight,
             backingScaleObservable,
             resizeObservable
         )
         .observe(on: MainScheduler.instance)
-        .compactMap { cellViewModels, _, _, backingScale, _ in
+        .compactMap { cellViewModels, _, backingScale, _ in
             gridView.layoutSubtreeIfNeeded()
             let inset = Constants.outlineInset
 

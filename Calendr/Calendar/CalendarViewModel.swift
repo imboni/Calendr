@@ -20,8 +20,7 @@ class CalendarViewModel {
     let weekNumbers: Observable<[Int]?>
     let calendarScaling: Observable<Double>
     let textScaling: Observable<Double>
-    let cellSize: Observable<Double>
-    let cellHeight: Observable<Double>
+    let cellSize: Observable<CGSize>
     let weekNumbersWidth: Observable<Double>
     let showMonthOutline: Observable<Bool>
 
@@ -49,7 +48,7 @@ class CalendarViewModel {
         .map { date, calendar, showLunar -> String in
             if showLunar {
                 let monthDay = DateFormatter(format: "M月d日", calendar: calendar).string(from: date)
-                if let lunar = chineseLunarFullDateString(from: date, calendar: calendar), !lunar.isEmpty {
+                if let lunar = ChineseLunarDate(from: date)?.fullText, !lunar.isEmpty {
                     return monthDay + " " + lunar
                 }
                 return monthDay
@@ -121,6 +120,17 @@ class CalendarViewModel {
                     let date = calendar.date(byAdding: .day, value: day, to: start)!
                     let inMonth = calendar.isDate(date, equalTo: month.start, toGranularity: .month)
 
+                    let plugin: (any CalendarCellPlugin)? = (showLunar || showHolidays || showTerms)
+                        ? BoniChineseCalendarCellPlugin(
+                            for: date,
+                            events: [],
+                            calendar: calendar,
+                            showLunarCalendar: showLunar,
+                            showMainlandHolidays: showHolidays,
+                            showSolarTerms: showTerms
+                        )
+                        : nil
+
                     return CalendarCellViewModel(
                         date: date,
                         inMonth: inMonth,
@@ -130,9 +140,8 @@ class CalendarViewModel {
                         events: [],
                         dotsStyle: dotsStyle,
                         calendar: calendar,
-                        showLunarCalendar: showLunar,
-                        showMainlandHolidays: showHolidays,
-                        showSolarTerms: showTerms
+                        plugin: plugin?.eraseToAnyPlugin(),
+                        showMainlandHolidays: showHolidays
                     )
                 }
             }
@@ -332,27 +341,29 @@ class CalendarViewModel {
         .map { $0 || $1 || $2 }
         .share(replay: 1)
 
-        cellSize = Observable
-            .combineLatest(calendarScaling, usesSecondaryLine)
-            .map { scale, expanded -> Double in
-                let base = Constants.cellSize * scale + 10 * (scale - 1)
-                return expanded ? base + Constants.lunarCellWidthExtra * scale : base
+        let baseCellSize = usesSecondaryLine
+            .map { usesSecondary in
+                usesSecondary ? BoniChineseCalendarCellPlugin.cellSize : Constants.cellSize
             }
-            .distinctUntilChanged()
-            .share(replay: 1)
+        .share(replay: 1)
 
-        cellHeight = Observable
-            .combineLatest(calendarScaling, usesSecondaryLine)
-            .map { scale, expanded -> Double in
-                let base = Constants.cellSize * scale + 10 * (scale - 1)
-                return expanded ? base + Constants.lunarCellExtra * scale : base
+        cellSize = Observable
+            .combineLatest(calendarScaling, baseCellSize)
+            .map { scale, base -> CGSize in
+                let padding: CGFloat = 10 * (scale - 1)
+                return CGSize(
+                    width: base.width * scale + padding,
+                    height: base.height * scale + padding
+                )
             }
             .distinctUntilChanged()
             .share(replay: 1)
 
         weekNumbersWidth = Observable
             .combineLatest(weekNumbers, cellSize)
-            .map { $0 != nil ? $1 * Constants.weekNumberCellRatio : 0 }
+            .map { weekNums, size in
+                weekNums != nil ? size.width * Constants.weekNumberCellRatio : 0
+            }
             .distinctUntilChanged()
             .share(replay: 1)
 
@@ -410,18 +421,15 @@ private extension CalendarCellViewModel {
             events: events ?? self.events,
             dotsStyle: dotsStyle,
             calendar: calendar ?? self.calendar,
-            showLunarCalendar: showLunarCalendar,
-            showMainlandHolidays: showMainlandHolidays,
-            showSolarTerms: showSolarTerms
+            plugin: plugin,
+            showMainlandHolidays: showMainlandHolidays
         )
     }
 }
 
 private enum Constants {
 
-    static let cellSize: CGFloat = 25
-    static let lunarCellWidthExtra: CGFloat = 6
-    static let lunarCellExtra: CGFloat = 13
+    static let cellSize = CGSize(width: 25, height: 25)
     static let weekNumberCellRatio: CGFloat = 0.85
     static let maxSearchResults: Int = 12
 }
