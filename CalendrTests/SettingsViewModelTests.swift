@@ -248,14 +248,15 @@ class SettingsViewModelTests {
         #expect(storage.statusItemLunarDateEnabled)
     }
 
-    @Test func testChineseLunarCalendarDefaultsOffForUnsupportedLocalization() {
+    @Test func testChineseLunarCalendarDefaultsOnEvenForUnsupportedLocalization() {
 
         let storage = MockLocalStorageProvider()
 
+        // Chinese edition always defaults lunar + menu-bar lunar ON.
         registerDefaultPrefs(in: storage, preferredLocalizations: ["en"])
 
-        #expect(storage.showLunarCalendar == false)
-        #expect(storage.statusItemLunarDateEnabled == false)
+        #expect(storage.showLunarCalendar)
+        #expect(storage.statusItemLunarDateEnabled)
     }
 
     @Test func testChineseLunarCalendarKeepsExplicitUserPreference() {

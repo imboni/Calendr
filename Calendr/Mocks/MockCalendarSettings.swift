@@ -67,7 +67,7 @@ class MockCalendarSettings: CalendarSettings {
 
     init(
         firstWeekday: Int = 1,
-        highlightedWeekdays: [Int] = [],
+        highlightedWeekdays: [Int] = [0, 6],
         showWeekNumbers: Bool = false,
         showMonthOutline: Bool = false,
         calendarScaling: Double = 1,
