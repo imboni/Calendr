@@ -54,16 +54,18 @@ jobs:
           fail_on_unmatched_files: true
 
       - name: Update Homebrew cask
+        env:
+          RELEASE_VERSION: ${{ steps.tag.outputs.name }}
+          RELEASE_SHA256: ${{ steps.zip.outputs.sha256 }}
         run: |
-          VERSION="${{ steps.tag.outputs.name }}"
-          SHA="${{ steps.zip.outputs.sha256 }}"
-          python3 - << PY
+          python3 - <<'PY'
           from pathlib import Path
+          import os
+          import re
           p = Path("Casks/calendr.rb")
           text = p.read_text()
-          import re
-          text = re.sub(r'version ".*"', f'version "{VERSION}"', text, count=1)
-          text = re.sub(r'sha256 .*', f'sha256 "{SHA}"', text, count=1)
+          text = re.sub(r'version ".*"', f'version "{os.environ["RELEASE_VERSION"]}"', text, count=1)
+          text = re.sub(r'sha256 .*', f'sha256 "{os.environ["RELEASE_SHA256"]}"', text, count=1)
           p.write_text(text)
           PY
           git config user.name "github-actions[bot]"
@@ -72,6 +74,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "Cask already up to date"
           else
-            git commit -m "Update Homebrew cask to ${VERSION}"
+            git commit -m "Update Homebrew cask to ${RELEASE_VERSION}"
             git push origin HEAD:master
           fi
