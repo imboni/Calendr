@@ -37,6 +37,7 @@ struct CalendarViewPreview: PreviewProvider {
                 keyboardModifiers: .just([]),
                 enabledCalendars: .empty(),
                 calendarService: calendarService,
+                holidayProvider: MockMainlandHolidayProvider(),
                 dateProvider: dateProvider,
                 settings: settings,
                 scheduler: MainScheduler.instance

@@ -26,6 +26,7 @@ class SettingsViewModelTests {
     lazy var viewModel = SettingsViewModel(
         autoLauncher: autoLauncher,
         autoUpdater: autoUpdater,
+        holidayProvider: MockMainlandHolidayProvider(),
         dateProvider: dateProvider,
         workspace: workspace,
         localStorage: localStorage,

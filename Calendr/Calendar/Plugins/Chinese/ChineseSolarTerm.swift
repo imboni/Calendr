@@ -24,7 +24,8 @@ struct ChineseSolarTerm: Equatable {
 
 extension ChineseSolarTerm {
 
-    init?(from date: Date) {
+    init?(from date: Date, calendar: Calendar) {
+        guard let date = chineseCalendarDate(for: date, calendar: calendar) else { return nil }
         let year = shanghaiCalendar.component(.year, from: date)
         for yearToCheck in [year - 1, year] {
             for index in solarTermNames.indices {

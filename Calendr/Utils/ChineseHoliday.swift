@@ -14,10 +14,35 @@ private let solarTermNames = [
     "立冬", "小雪", "大雪", "冬至"
 ]
 
-private let shanghaiTimeZone = TimeZone(identifier: "Asia/Shanghai") ?? TimeZone(secondsFromGMT: 8 * 3600)!
+// Published schedules let the grid display holidays before system subscriptions sync.
+// 2026: 国办发明电〔2025〕7号, published 2025-11-04.
+// https://www.beijing.gov.cn/fwcj/calendar/shts/690abd58091e1a7398401381.html
+// 2027: 国办发明电〔2026〕10号, published 2026-11-05.
+// https://www.news.cn/politics/20261105/f90cd6ad4df94ab4833b141e52ccfc13/c.html
+// Only add announced years; other years continue to use subscribed events.
+private let mainlandRestPeriods: [Int: [(month: Int, days: ClosedRange<Int>, name: String)]] = [
+    2026: [
+        (1, 1...3, "元旦"),
+        (2, 15...23, "春节"),
+        (4, 4...6, "清明"),
+        (5, 1...5, "劳动"),
+        (6, 19...21, "端午"),
+        (9, 25...27, "中秋"),
+        (10, 1...7, "国庆")
+    ],
+    2027: [
+        (1, 1...3, "元旦"),
+        (2, 5...13, "春节"),
+        (4, 3...5, "清明"),
+        (5, 1...5, "劳动"),
+        (6, 9...9, "端午"),
+        (9, 15...15, "中秋"),
+        (10, 1...7, "国庆")
+    ]
+]
 
 func isChineseMainlandHolidayCalendar(_ calendar: CalendarModel) -> Bool {
-    let haystack = calendar.title + " " + calendar.account.title
+    let haystack = normalizedHolidayTitle(calendar.title + " " + calendar.account.title)
     if haystack.contains("中国大陆节假日") { return true }
     if haystack.contains("中国节假日") { return true }
     if haystack.localizedCaseInsensitiveContains("Holidays in China") { return true }
@@ -29,8 +54,9 @@ func isChineseMainlandHolidayCalendar(_ calendar: CalendarModel) -> Bool {
 }
 
 func isMainlandMakeupWorkTitle(_ title: String) -> Bool {
-    let text = title.lowercased()
-    if title.contains("上班") || title.contains("补班") || title.contains("调休上班") {
+    let text = normalizedHolidayTitle(title).lowercased()
+    if text.contains("non-working day") || text.contains("non working day") { return false }
+    if text.contains("上班") || text.contains("补班") || text.contains("工作日") {
         return true
     }
     if text.contains("working day") || text.contains("workday") || text.contains("work day") {
@@ -40,10 +66,14 @@ func isMainlandMakeupWorkTitle(_ title: String) -> Bool {
 }
 
 func isSolarTermName(_ title: String) -> Bool {
-    solarTermNames.contains { title.contains($0) } && !title.contains("节")
+    let text = normalizedHolidayTitle(title).filter { !$0.isWhitespace }
+    return solarTermNames.contains {
+        text == $0 || text == $0 + "节气" || text == $0 + "（节气）" || text == $0 + "(节气)"
+    }
 }
 
 func shortMainlandHolidayName(from title: String) -> String? {
+    let title = normalizedHolidayTitle(title)
     if isMainlandMakeupWorkTitle(title) { return nil }
     if isSolarTermName(title) { return nil }
 
@@ -53,7 +83,23 @@ func shortMainlandHolidayName(from title: String) -> String? {
         }
     }
 
-    if title.contains("休息日") || title.contains("放假") {
+    let english = title.lowercased().replacingOccurrences(of: "’", with: "'")
+    let aliases = [
+        ("除夕", ["chinese new year's eve", "lunar new year's eve"]),
+        ("春节", ["chinese new year", "lunar new year", "spring festival"]),
+        ("元旦", ["new year's day"]),
+        ("清明", ["qingming", "tomb sweeping", "tomb-sweeping"]),
+        ("劳动", ["labour day", "labor day"]),
+        ("端午", ["dragon boat"]),
+        ("中秋", ["mid-autumn", "mid autumn"]),
+        ("国庆", ["national day"]),
+        ("元宵", ["lantern festival"])
+    ]
+    if let alias = aliases.first(where: { $0.1.contains(where: english.contains) }) {
+        return alias.0
+    }
+
+    if isExplicitMainlandRestTitle(title) {
         return "休息"
     }
 
@@ -63,57 +109,20 @@ func shortMainlandHolidayName(from title: String) -> String? {
     return String(trimmed.prefix(2))
 }
 
-/// Statutory rest windows. Makeup-work Sundays/Saturdays (e.g. 9/20, 10/10 for 国庆) stay out.
-func isStatutoryRestDate(_ key: String, date: Date, calendar: Calendar) -> Bool {
-    var shanghaiCalendar = calendar
-    shanghaiCalendar.timeZone = shanghaiTimeZone
-    let month = shanghaiCalendar.component(.month, from: date)
-    let day = shanghaiCalendar.component(.day, from: date)
-    switch key {
-    case "元旦":
-        return month == 1 && (1...3).contains(day)
-    case "春节", "除夕":
-        return month == 1 || month == 2
-    case "清明":
-        return month == 4 && (3...7).contains(day)
-    case "劳动":
-        return month == 5 && (1...5).contains(day)
-    case "端午":
-        return month == 5 || month == 6
-    case "中秋":
-        return (month == 9 && day >= 22) || (month == 10 && day <= 8)
-    case "国庆":
-        return month == 10 && (1...7).contains(day)
-    default:
-        return true
-    }
-}
+func chineseMainlandHolidayName(from events: [EventModel], date: Date, calendar: Calendar, schedules: [Int: MainlandHolidaySchedule] = [:]) -> String? {
+    let published = publishedMainlandHoliday(on: date, calendar: calendar, schedules: schedules)
+    if let name = published.name { return name }
 
-func solarTermName(on date: Date, calendar: Calendar) -> String? {
-    var shanghaiCalendar = Calendar(identifier: .gregorian)
-    shanghaiCalendar.timeZone = shanghaiTimeZone
-    let year = shanghaiCalendar.component(.year, from: date)
-    for yearToCheck in [year - 1, year] {
-        for index in solarTermNames.indices {
-            guard let termDate = dateOfSolarTerm(year: yearToCheck, index: index) else { continue }
-            if shanghaiCalendar.isDate(date, inSameDayAs: termDate) {
-                return solarTermNames[index]
-            }
-        }
-    }
-    return nil
-}
-
-func chineseMainlandHolidayName(from events: [EventModel], date: Date, calendar: Calendar) -> String? {
-    for event in events where event.isAllDay && isChineseMainlandHolidayCalendar(event.calendar) {
+    for event in events where event.isAllDay && event.type.isEvent && isChineseMainlandHolidayCalendar(event.calendar) {
+        guard calendar.isDay(date, inDays: (event.start, event.end)) else { continue }
         if isMainlandMakeupWorkTitle(event.title) { continue }
         guard let name = shortMainlandHolidayName(from: event.title) else { continue }
 
-        if statutoryHolidayKeys.contains(name) {
-            if isStatutoryRestDate(name, date: date, calendar: calendar) {
-                return name
-            }
-            continue
+        if statutoryHolidayKeys.contains(name) || name == "休息" {
+            // Published dates override stale subscriptions. Otherwise trust the event's
+            // actual interval, not month/day windows copied from a different year.
+            if published.hasSchedule { continue }
+            return name
         }
 
         // One-day festivals (七夕 etc.): EventKit all-day ends next midnight.
@@ -124,71 +133,54 @@ func chineseMainlandHolidayName(from events: [EventModel], date: Date, calendar:
     return nil
 }
 
-func isChineseMainlandRestDay(from events: [EventModel], date: Date, calendar: Calendar) -> Bool {
-    events.contains { event in
-        guard event.isAllDay,
-              isChineseMainlandHolidayCalendar(event.calendar),
-              !isMainlandMakeupWorkTitle(event.title),
-              !isOnlyQingmingSolarTerm(event.title),
+func isChineseMainlandRestDay(from events: [EventModel], date: Date, calendar: Calendar, schedules: [Int: MainlandHolidaySchedule] = [:]) -> Bool {
+    let published = publishedMainlandHoliday(on: date, calendar: calendar, schedules: schedules)
+    if published.hasSchedule { return published.name != nil }
+
+    let dayEvents = events.filter {
+        $0.isAllDay && $0.type.isEvent && isChineseMainlandHolidayCalendar($0.calendar)
+            && calendar.isDay(date, inDays: ($0.start, $0.end))
+    }
+    if dayEvents.contains(where: { isMainlandMakeupWorkTitle($0.title) }) { return false }
+
+    return dayEvents.contains { event in
+        // A festival's name alone is not evidence of a published rest arrangement.
+        guard isExplicitMainlandRestTitle(event.title),
               let name = shortMainlandHolidayName(from: event.title),
-              statutoryHolidayKeys.contains(name)
+              statutoryHolidayKeys.contains(name) || name == "休息"
         else { return false }
-        return isStatutoryRestDate(name, date: date, calendar: calendar)
+        return true
     }
 }
 
-func isSolarTermOverride(from events: [EventModel], date: Date, calendar: Calendar) -> Bool {
-    if let name = chineseMainlandHolidayName(from: events, date: date, calendar: calendar) {
-        return solarTermNames.contains(name) && !isChineseMainlandRestDay(from: events, date: date, calendar: calendar)
+private func publishedMainlandHoliday(on date: Date, calendar displayCalendar: Calendar, schedules: [Int: MainlandHolidaySchedule]) -> (hasSchedule: Bool, name: String?) {
+    var calendar = Calendar(identifier: .gregorian)
+    // Public holidays belong to civil dates in the displayed grid, not instants in Shanghai.
+    calendar.timeZone = displayCalendar.timeZone
+    let components = calendar.dateComponents([.year, .month, .day], from: date)
+    guard let year = components.year, let month = components.month, let day = components.day else { return (false, nil) }
+
+    // A following year's New Year arrangement can include the previous December.
+    if let next = schedules[year + 1]?.day(on: date, calendar: calendar) {
+        return (true, next.isOffDay ? shortPublishedHolidayName(next.name) : nil)
     }
-    return false
-}
-
-private func isOnlyQingmingSolarTerm(_ title: String) -> Bool {
-    title.contains("清明") && !title.contains("节") && !title.contains("放假") && !title.contains("假")
-}
-
-private func normalizedDegrees(_ value: Double) -> Double {
-    var deg = value.truncatingRemainder(dividingBy: 360)
-    if deg < 0 { deg += 360 }
-    return deg
-}
-
-private func signedAngleDelta(target: Double, actual: Double) -> Double {
-    normalizedDegrees(target - actual + 180) - 180
-}
-
-private func julianDay(from date: Date) -> Double {
-    2440587.5 + date.timeIntervalSince1970 / 86_400
-}
-
-/// Apparent geocentric ecliptic longitude of the Sun, Meeus ch. 25 (low accuracy).
-private func sunApparentLongitude(julianDay jd: Double) -> Double {
-    let T = (jd - 2_451_545.0) / 36_525.0
-    let L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T
-    let M = 357.52911 + 35999.05029 * T - 0.0001537 * T * T
-    let Mr = M * .pi / 180
-    let C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * sin(Mr)
-        + (0.019993 - 0.000101 * T) * sin(2 * Mr)
-        + 0.000289 * sin(3 * Mr)
-    let omega = 125.04 - 1934.136 * T
-    return normalizedDegrees(L0 + C - 0.00569 - 0.00478 * sin(omega * .pi / 180))
-}
-
-private func dateOfSolarTerm(year: Int, index: Int) -> Date? {
-    guard solarTermNames.indices.contains(index) else { return nil }
-    let target = normalizedDegrees(285 + 15 * Double(index))
-    var utc = Calendar(identifier: .gregorian)
-    utc.timeZone = TimeZone(secondsFromGMT: 0)!
-    guard var date = utc.date(from: DateComponents(year: year, month: 1, day: 1, hour: 0)) else {
-        return nil
+    if let schedule = schedules[year] {
+        let day = schedule.day(on: date, calendar: calendar)
+        return (true, day.flatMap { $0.isOffDay ? shortPublishedHolidayName($0.name) : nil })
     }
-    let dayOfYear = ((target + 80).truncatingRemainder(dividingBy: 360)) / 0.985647
-    date = date.addingTimeInterval((dayOfYear - 2) * 86_400)
-    for _ in 0..<25 {
-        let lon = sunApparentLongitude(julianDay: julianDay(from: date))
-        let diff = signedAngleDelta(target: target, actual: lon)
-        date = date.addingTimeInterval(diff * 86_400 / 0.985647)
-    }
-    return date
+    guard let periods = mainlandRestPeriods[year] else { return (false, nil) }
+
+    return (true, periods.first { $0.month == month && $0.days.contains(day) }?.name)
+}
+
+private func normalizedHolidayTitle(_ title: String) -> String {
+    (title.applyingTransform(StringTransform("Traditional-Simplified"), reverse: false) ?? title)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
+private func isExplicitMainlandRestTitle(_ title: String) -> Bool {
+    let text = normalizedHolidayTitle(title).lowercased()
+    return ["放假", "休息", "假期", "公休", "补假", "（休）", "(休)", "[休]", "holiday", "day off",
+            "non-working day", "non working day"]
+        .contains { text.contains($0) }
 }

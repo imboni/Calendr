@@ -203,3 +203,16 @@
 "tooltips.toolbar.open_menu" = "Open menu";
 
 "calendars.source.others" = "Others";
+
+// Annual mainland holiday synchronization
+"holiday_sync.refresh" = "Sync";
+"holiday_sync.available" = "Holidays through %@";
+"holiday_sync.automatic" = "Auto-sync";
+"holiday_sync.checking" = "Checking…";
+"holiday_sync.failed" = "Sync failed";
+"holiday_sync.explanation" = "Checks hourly while running and after launch/wake. Dates are verified against the State Council notice. Existing verified data is kept on failure. Timing depends on source publication and connectivity.";
+"holiday_sync.years" = "Confirmed years: %@";
+"holiday_sync.checked" = "Last check: %@";
+"holiday_sync.pending" = "No published schedule received yet";
+"holiday_sync.invalid" = "Verification failed; keeping existing data";
+"holiday_sync.unavailable" = "Source unavailable; keeping existing data";

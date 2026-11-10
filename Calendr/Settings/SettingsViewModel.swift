@@ -271,6 +271,11 @@ class SettingsViewModel:
     let dateFormatPlaceholder = AppConstants.defaultCustomDateFormat
 
     private let autoLauncher: AutoLaunching
+    let holidaySyncState: Observable<MainlandHolidaySyncState>
+    private let holidayProvider: MainlandHolidayProviding
+
+    func refreshHolidays() { holidayProvider.refresh(year: nil, force: true) }
+
     private let dateProvider: DateProviding
     private let localStorage: LocalStorageProvider
     private let scheduler: SchedulerType
@@ -278,12 +283,15 @@ class SettingsViewModel:
     init(
         autoLauncher: some AutoLaunching,
         autoUpdater: AutoUpdating,
+        holidayProvider: MainlandHolidayProviding,
         dateProvider: DateProviding,
         workspace: WorkspaceServiceProviding,
         localStorage: LocalStorageProvider,
         notificationCenter: NotificationCenter,
         scheduler: SchedulerType
     ) {
+        self.holidayProvider = holidayProvider
+        holidaySyncState = holidayProvider.state
         self.autoLauncher = autoLauncher
         self.dateProvider = dateProvider
         self.localStorage = localStorage
@@ -439,7 +447,7 @@ class SettingsViewModel:
                 for option in StatusItemDateStyle.allCases {
                     dateFormatter.dateStyle = option
                     var title = dateFormatter.string(from: dateProvider.now)
-                    if showLunar, let lunar = ChineseLunarDate(from: dateProvider.now)?.fullText {
+                    if showLunar, let lunar = ChineseLunarDate(from: dateProvider.now, calendar: dateProvider.calendar)?.fullText {
                         title += " " + lunar
                     }
                     guard !options.contains(where: { $0.title == title }) else { continue }

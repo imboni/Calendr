@@ -32,6 +32,7 @@ class CalendarViewModelSearchTests {
         keyboardModifiers: keyboardModifiers,
         enabledCalendars: enabledCalendars,
         calendarService: calendarService,
+        holidayProvider: MockMainlandHolidayProvider(),
         dateProvider: dateProvider,
         settings: settings,
         scheduler: scheduler

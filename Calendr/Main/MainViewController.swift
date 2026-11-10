@@ -85,6 +85,7 @@ class MainViewController: NSViewController {
         autoUpdater: AutoUpdating,
         workspace: WorkspaceServiceProviding,
         calendarService: CalendarServiceProviding,
+        holidayProvider: MainlandHolidayProviding,
         geocoder: GeocodeServiceProviding,
         weatherService: WeatherServiceProviding,
         dateProvider: DateProviding,
@@ -121,6 +122,7 @@ class MainViewController: NSViewController {
         settingsViewModel = SettingsViewModel(
             autoLauncher: autoLauncher,
             autoUpdater: autoUpdater,
+            holidayProvider: holidayProvider,
             dateProvider: dateProvider,
             workspace: workspace,
             localStorage: localStorage,
@@ -170,6 +172,7 @@ class MainViewController: NSViewController {
             keyboardModifiers: mainViewModel.keyboardModifiers,
             enabledCalendars: calendarListViewModel.enabledCalendars,
             calendarService: calendarService,
+            holidayProvider: holidayProvider,
             dateProvider: dateProvider,
             settings: settingsViewModel,
             scheduler: MainScheduler.instance

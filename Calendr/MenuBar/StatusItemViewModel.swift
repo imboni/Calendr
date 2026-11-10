@@ -94,7 +94,7 @@ class StatusItemViewModel {
                     } else {
                         formatter.string(from: dateProvider.now)
                     }
-                    if showLunar, let lunar = ChineseLunarDate(from: dateProvider.now)?.fullText {
+                    if showLunar, let lunar = ChineseLunarDate(from: dateProvider.now, calendar: dateProvider.calendar)?.fullText {
                         text = text.isEmpty ? lunar : text + " " + lunar
                     }
                     return text.isEmpty ? "???" : text

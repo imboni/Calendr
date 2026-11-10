@@ -49,6 +49,8 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
     private let showWeekNumbersCheckbox = Checkbox(title: Strings.Settings.Calendar.showWeekNumbers)
     private let showLunarCalendarCheckbox = Checkbox(title: Strings.Settings.Calendar.showLunarCalendar)
     private let showMainlandHolidaysCheckbox = Checkbox(title: Strings.Settings.Calendar.showMainlandHolidays)
+    private let holidaySyncLabel = Label(font: .systemFont(ofSize: 10), color: .secondaryLabelColor)
+    private let holidaySyncButton = NSButton(title: Strings.HolidaySync.refresh, target: nil, action: nil)
     private let showSolarTermsCheckbox = Checkbox(title: Strings.Settings.Calendar.showSolarTerms)
     private let showDeclinedEventsCheckbox = Checkbox(title: Strings.Settings.Calendar.showDeclinedEvents)
     private let preserveSelectedDateCheckbox = Checkbox(title: Strings.Settings.Calendar.preserveSelectedDate)
@@ -216,6 +218,7 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
             showWeekNumbersCheckbox,
             showLunarCalendarCheckbox,
             showMainlandHolidaysCheckbox,
+            NSStackView(views: [holidaySyncLabel, holidaySyncButton]),
             showSolarTermsCheckbox,
             NSStackView(views: [showDeclinedEventsCheckbox, showDeclinedEventsTooltip]),
             preserveSelectedDateCheckbox,
@@ -636,6 +639,36 @@ class GeneralSettingsViewController: NSViewController, SettingsUI {
             observer: viewModel.toggleMainlandHolidays
         )
         .disposed(by: disposeBag)
+
+        holidaySyncButton.bezelStyle = .rounded
+        holidaySyncButton.controlSize = .small
+        holidaySyncButton.rx.tap.bind { [weak self] in self?.viewModel.refreshHolidays() }
+            .disposed(by: disposeBag)
+        viewModel.holidaySyncState.observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] state in
+                guard let self else { return }
+                let years = Set([2026, 2027]).union(state.schedules.keys).sorted()
+                let failed = state.issues.values.contains { $0 != .notPublished }
+                let status = state.isRefreshing ? Strings.HolidaySync.checking
+                    : failed ? Strings.HolidaySync.failed : Strings.HolidaySync.automatic
+                holidaySyncLabel.stringValue = Strings.HolidaySync.available(String(years.last!)) + " · " + status
+                holidaySyncButton.isEnabled = !state.isRefreshing
+                var details = [Strings.HolidaySync.explanation, Strings.HolidaySync.years(years.map(String.init).joined(separator: "、"))]
+                if let date = state.checkedAt {
+                    details.append(Strings.HolidaySync.checked(DateFormatter.localizedString(from: date, dateStyle: .short, timeStyle: .short)))
+                }
+                for year in state.issues.keys.sorted() {
+                    let message: String
+                    switch state.issues[year]! {
+                    case .notPublished: message = Strings.HolidaySync.pending
+                    case .invalidData: message = Strings.HolidaySync.invalid
+                    case .unavailable: message = Strings.HolidaySync.unavailable
+                    }
+                    details.append("\(year)：\(message)")
+                }
+                holidaySyncLabel.toolTip = details.joined(separator: "\n")
+                holidaySyncButton.toolTip = holidaySyncLabel.toolTip
+            }).disposed(by: disposeBag)
 
         bind(
             control: showSolarTermsCheckbox,

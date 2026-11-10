@@ -261,7 +261,7 @@ class EventListViewModel {
     }
 
     private func dateSectionTitle(_ title: String, date: Date, showLunar: Bool) -> String {
-        guard showLunar, let lunar = ChineseLunarDate(from: date)?.fullText else {
+        guard showLunar, let lunar = ChineseLunarDate(from: date, calendar: dateProvider.calendar)?.fullText else {
             return title
         }
         return "\(title) \(lunar)"

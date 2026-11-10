@@ -116,6 +116,21 @@ plutil -replace CFBundleName -string "Calendr" "$PLIST"
 plutil -replace CFBundlePackageType -string "APPL" "$PLIST"
 plutil -replace CFBundleIconFile -string "AppIcon" "$PLIST"
 plutil -replace CFBundleIconName -string "AppIcon" "$PLIST"
+plutil -replace CFBundleDevelopmentRegion -string "en" "$PLIST"
+plutil -replace SENTRY_DSN -string "${SENTRY_DSN:-}" "$PLIST"
+
+# SPM keeps translations in a resource bundle. Declare its languages on the app
+# too, so macOS selects the user's language instead of always falling back to English.
+python3 - "$PLIST" <<'PY'
+from pathlib import Path
+import plistlib
+import sys
+
+path = Path(sys.argv[1])
+info = plistlib.loads(path.read_bytes())
+info["CFBundleLocalizations"] = sorted(p.stem for p in Path("Calendr/Assets").glob("*.lproj"))
+path.write_bytes(plistlib.dumps(info))
+PY
 
 if [[ -f resources/AppIcon.icns ]]; then
     cp resources/AppIcon.icns "$CONTENTS/Resources/"

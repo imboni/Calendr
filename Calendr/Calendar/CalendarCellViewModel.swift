@@ -19,6 +19,8 @@ struct CalendarCellViewModel: Equatable {
     let isSelected: Bool
     let isHovered: Bool
     let events: [EventModel]
+    let holidayEvents: [EventModel]
+    let holidaySchedules: [Int: MainlandHolidaySchedule]
     let dotsStyle: EventDotsStyle
     let calendar: Calendar
     let plugin: AnyCalendarCellPlugin?
@@ -35,7 +37,7 @@ extension CalendarCellViewModel {
 
     var holidayName: String? {
         guard showMainlandHolidays else { return nil }
-        return chineseMainlandHolidayName(from: events, date: date, calendar: calendar)
+        return chineseMainlandHolidayName(from: holidayEvents, date: date, calendar: calendar, schedules: holidaySchedules)
     }
 
     var pluginText: String? {
@@ -60,7 +62,7 @@ extension CalendarCellViewModel {
 
     var isStatutoryRestDay: Bool {
         guard showMainlandHolidays else { return false }
-        return isChineseMainlandRestDay(from: events, date: date, calendar: calendar)
+        return isChineseMainlandRestDay(from: holidayEvents, date: date, calendar: calendar, schedules: holidaySchedules)
     }
 
     var alpha: CGFloat {

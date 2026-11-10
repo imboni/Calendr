@@ -203,3 +203,16 @@
 "tooltips.toolbar.open_menu" = "打开菜单";
 
 "calendars.source.others" = "其他";
+
+// 中国大陆公休年度同步
+"holiday_sync.refresh" = "同步";
+"holiday_sync.available" = "公休已确认至 %@ 年";
+"holiday_sync.automatic" = "自动同步";
+"holiday_sync.checking" = "检查中…";
+"holiday_sync.failed" = "同步失败";
+"holiday_sync.explanation" = "运行时每小时检查，启动、唤醒后也会检查。放假及补班日期逐日核对国务院通知，失败时保留已有的已确认数据。更新时效取决于数据源发布和网络连接。";
+"holiday_sync.years" = "已确认年份：%@";
+"holiday_sync.checked" = "最近检查：%@";
+"holiday_sync.pending" = "尚未取得已公布安排";
+"holiday_sync.invalid" = "校验未通过，保留已有数据";
+"holiday_sync.unavailable" = "数据源暂不可用，保留已有数据";

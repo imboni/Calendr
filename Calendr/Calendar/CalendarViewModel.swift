@@ -10,6 +10,8 @@ import RxSwift
 
 class CalendarViewModel {
 
+    private let disposeBag = DisposeBag()
+
     let cellViewModelsObservable: Observable<[CalendarCellViewModel]>
     let eventListObservable: Observable<DateEvents>
 
@@ -31,6 +33,7 @@ class CalendarViewModel {
         keyboardModifiers: Observable<NSEvent.ModifierFlags>,
         enabledCalendars: Observable<[String]>,
         calendarService: CalendarServiceProviding,
+        holidayProvider: MainlandHolidayProviding,
         dateProvider: DateProviding,
         settings: CalendarSettings,
         scheduler: SchedulerType
@@ -38,6 +41,16 @@ class CalendarViewModel {
         let calendarUpdated = dateProvider.calendarUpdated
             .startWith(dateProvider.calendar)
             .share(replay: 1)
+
+        Observable.combineLatest(dateObservable, calendarUpdated)
+            .map { date, calendar -> Int in
+                var gregorian = Calendar(identifier: .gregorian)
+                gregorian.timeZone = calendar.timeZone
+                return gregorian.component(.year, from: date)
+            }
+            .distinctUntilChanged()
+            .subscribe(onNext: { holidayProvider.refresh(year: $0, force: false) })
+            .disposed(by: disposeBag)
 
         let lunarTitleParts = Observable.combineLatest(
             dateObservable, calendarUpdated, settings.showLunarCalendar
@@ -48,7 +61,7 @@ class CalendarViewModel {
         .map { date, calendar, showLunar -> String in
             if showLunar {
                 let monthDay = DateFormatter(format: "M月d日", calendar: calendar).string(from: date)
-                if let lunar = ChineseLunarDate(from: date)?.fullText, !lunar.isEmpty {
+                if let lunar = ChineseLunarDate(from: date, calendar: calendar)?.fullText, !lunar.isEmpty {
                     return monthDay + " " + lunar
                 }
                 return monthDay
@@ -86,9 +99,9 @@ class CalendarViewModel {
             .share(replay: 1)
 
         // Calculate date range for current month
-        let dateRangeObservable = dateObservable
-            .compactMap { selectedDate in
-                dateProvider.calendar.dateInterval(of: .month, for: selectedDate)
+        let dateRangeObservable = Observable.combineLatest(dateObservable, calendarUpdated)
+            .compactMap { selectedDate, calendar in
+                calendar.dateInterval(of: .month, for: selectedDate)
             }
             .distinctUntilChanged()
             .share(replay: 1)
@@ -104,9 +117,10 @@ class CalendarViewModel {
                 settings.eventDotsStyle,
                 settings.showLunarCalendar,
                 settings.showMainlandHolidays,
-                settings.showSolarTerms
+                settings.showSolarTerms,
+                holidayProvider.state.map(\.schedules).distinctUntilChanged()
             )
-            .map { weeksCount, month, calendar, dotsStyle, showLunar, showHolidays, showTerms -> [CalendarCellViewModel] in
+            .map { weeksCount, month, calendar, dotsStyle, showLunar, showHolidays, showTerms, schedules -> [CalendarCellViewModel] in
 
                 let monthStartWeekDay = calendar.component(.weekday, from: month.start)
 
@@ -126,7 +140,7 @@ class CalendarViewModel {
                             events: [],
                             calendar: calendar,
                             showLunarCalendar: showLunar,
-                            showMainlandHolidays: showHolidays,
+                            showMainlandHolidays: false, // Cells resolve published holidays from their current snapshot.
                             showSolarTerms: showTerms
                         )
                         : nil
@@ -138,6 +152,8 @@ class CalendarViewModel {
                         isSelected: false,
                         isHovered: false,
                         events: [],
+                        holidayEvents: [],
+                        holidaySchedules: schedules,
                         dotsStyle: dotsStyle,
                         calendar: calendar,
                         plugin: plugin?.eraseToAnyPlugin(),
@@ -158,9 +174,9 @@ class CalendarViewModel {
         .share(replay: 1)
 
         // Range for fetching events in the focused year
-        let fetchRangeObservable = dateObservable
-            .compactMap {
-                dateProvider.calendar.dateInterval(of: .year, for: $0)
+        let fetchRangeObservable = Observable.combineLatest(dateObservable, calendarUpdated)
+            .compactMap { date, calendar in
+                calendar.dateInterval(of: .year, for: date)
             }
             .distinctUntilChanged()
             .compactMap { interval -> (start: Date, end: Date)? in
@@ -195,6 +211,14 @@ class CalendarViewModel {
         .distinctUntilChanged()
         .share(replay: 1)
 
+        // Labels are calendar metadata; searching/hiding event rows must not erase them.
+        let holidayEventsObservable = eventsObservable
+            .map { events in
+                events.filter { $0.isAllDay && $0.type.isEvent && isChineseMainlandHolidayCalendar($0.calendar) }
+            }
+            .startWith([])
+            .distinctUntilChanged()
+
         let filteredEventsObservable = Observable.combineLatest(
             eventsObservable,
             settings.showDeclinedEvents,
@@ -218,7 +242,7 @@ class CalendarViewModel {
         var timeZone = dateProvider.calendar.timeZone
 
         // Check if today has changed
-        let todayObservable = dateObservable
+        let todayObservable = Observable.combineLatest(dateObservable, calendarUpdated)
             .void()
             .map { dateProvider.now }
             .distinctUntilChanged { a, b in
@@ -245,9 +269,9 @@ class CalendarViewModel {
 
         // Assign events to their respective cells
         let cellsWithEvents = Observable.combineLatest(
-            cellsWithIsToday, filteredEventsObservable, settings.futureEventsDays
+            cellsWithIsToday, filteredEventsObservable, settings.futureEventsDays, holidayEventsObservable
         )
-        .map { cellViewModels, events, futureEventsDays -> [CalendarCellViewModel] in
+        .map { cellViewModels, events, futureEventsDays, holidayEvents -> [CalendarCellViewModel] in
 
             guard let events else { return cellViewModels }
 
@@ -277,7 +301,10 @@ class CalendarViewModel {
                     return dateProvider.calendar.isDay(event.start, inDays: (futureStart, futureEnd))
                 }
 
-                return vm.with(events: eventsWithFuture)
+                return vm.with(
+                    events: eventsWithFuture,
+                    holidayEvents: holidayEvents.filter { vm.calendar.isDay(vm.date, inDays: ($0.start, $0.end)) }
+                )
             }
         }
         .distinctUntilChanged()
@@ -409,6 +436,7 @@ private extension CalendarCellViewModel {
         isSelected: Bool? = nil,
         isHovered: Bool? = nil,
         events: [EventModel]? = nil,
+        holidayEvents: [EventModel]? = nil,
         calendar: Calendar? = nil
     ) -> Self {
 
@@ -419,6 +447,8 @@ private extension CalendarCellViewModel {
             isSelected: isSelected ?? self.isSelected,
             isHovered: isHovered ?? self.isHovered,
             events: events ?? self.events,
+            holidayEvents: holidayEvents ?? self.holidayEvents,
+            holidaySchedules: holidaySchedules,
             dotsStyle: dotsStyle,
             calendar: calendar ?? self.calendar,
             plugin: plugin,

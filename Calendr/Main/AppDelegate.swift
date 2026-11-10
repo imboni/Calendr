@@ -52,6 +52,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let notificationProvider = LocalNotificationProvider()
         let networkProvider = NetworkServiceProvider()
 
+        let holidayProvider = MainlandHolidayProvider(
+            loader: HolidayDataLoader(), storage: localStorage, dateProvider: dateProvider,
+            triggers: Observable.merge(
+                Observable<Int>.interval(.seconds(3600), scheduler: MainScheduler.instance).map { _ in true },
+                Observable<Int>.interval(.seconds(900), scheduler: MainScheduler.instance).map { _ in false },
+                NSWorkspace.shared.notificationCenter.rx.notification(NSWorkspace.didWakeNotification).map { _ in false },
+                notificationCenter.rx.notification(NSApplication.didBecomeActiveNotification).map { _ in false }
+            ).startWith(false)
+        )
+
         let autoUpdater = AutoUpdater(
             launchServices: launchServices,
             localStorage: localStorage,
@@ -73,6 +83,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 localStorage: localStorage,
                 notificationCenter: notificationCenter
             ),
+            holidayProvider: holidayProvider,
             geocoder: GeocodeServiceProvider(),
             weatherService: WeatherServiceProvider(dateProvider: dateProvider),
             dateProvider: dateProvider,

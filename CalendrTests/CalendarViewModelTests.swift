@@ -21,6 +21,7 @@ class CalendarViewModelTests {
     let calendarsSubject = PublishSubject<[String]>()
 
     let calendarService = MockCalendarServiceProvider()
+    let holidayProvider = MockMainlandHolidayProvider()
     let settings = MockCalendarSettings()
     let dateProvider = MockDateProvider()
 
@@ -33,6 +34,7 @@ class CalendarViewModelTests {
         keyboardModifiers: keyboardModifiers,
         enabledCalendars: calendarsSubject,
         calendarService: calendarService,
+        holidayProvider: holidayProvider,
         dateProvider: dateProvider,
         settings: settings,
         scheduler: scheduler
@@ -114,6 +116,89 @@ class CalendarViewModelTests {
         settings.toggleWeekNumbers.onNext(true)
 
         scheduler.advance(.seconds(1))
+    }
+
+    @Test func downloadedHolidayRefreshesVisibleCellsWithoutNavigation() throws {
+        settings.toggleAllDayEvents.onNext(false)
+        searchSubject.onNext("nothing matches")
+        dateSubject.onNext(.make(year: 2028, month: 9, day: 15))
+        #expect(lastValue?.first { $0.inMonth && $0.text == "15" }?.isStatutoryRestDay == false)
+        let schedule = try JSONDecoder().decode(MainlandHolidaySchedule.self, from: MainlandHolidayFixtures.feedData(year: 2028))
+        holidayProvider.subject.onNext(MainlandHolidaySyncState(schedules: [2028: schedule]))
+        let cell = try #require(lastValue?.first { $0.inMonth && $0.text == "15" })
+        #expect(cell.holidayName == "中秋")
+        #expect(cell.isStatutoryRestDay)
+        #expect(cell.events.isEmpty)
+        #expect(holidayProvider.requestedYears.contains(2028))
+    }
+
+    @Test func testPublishedHolidayWithoutSubscriptionAndWithAllDayEventsHidden() throws {
+        settings.toggleAllDayEvents.onNext(false)
+        dateSubject.onNext(.make(year: 2027, month: 9, day: 15))
+
+        let cell = try #require(lastValue?.first { $0.inMonth && $0.text == "15" })
+        #expect(cell.events.isEmpty)
+        #expect(cell.pluginText == "中秋")
+        #expect(cell.isStatutoryRestDay)
+
+        settings.toggleMainlandHolidays.onNext(false)
+        let hidden = try #require(lastValue?.first { $0.inMonth && $0.text == "15" })
+        #expect(hidden.holidayName == nil)
+        #expect(hidden.pluginText != "中秋")
+        #expect(!hidden.isStatutoryRestDay)
+    }
+
+    @Test func testSubscribedHolidaySurvivesSearchAndAllDayEventFiltering() throws {
+        let date: Date = .make(year: 2024, month: 9, day: 17)
+        calendarService.m_events = [.make(
+            start: date, end: .make(year: 2024, month: 9, day: 18), title: "中秋节假期", isAllDay: true,
+            calendar: .make(id: "1", title: "中国大陆节假日")
+        )]
+        dateSubject.onNext(date)
+        settings.toggleAllDayEvents.onNext(false)
+        searchSubject.onNext("不会匹配节假日的搜索")
+
+        let cell = try #require(lastValue?.first { $0.inMonth && $0.text == "17" })
+        #expect(cell.events.isEmpty)
+        #expect(cell.holidayName == "中秋")
+        #expect(cell.isStatutoryRestDay)
+
+        // A system calendar change must refresh labels, even while event rows are hidden.
+        calendarService.changeEvents([])
+        let refreshed = try #require(lastValue?.first { $0.inMonth && $0.text == "17" })
+        #expect(refreshed.holidayName == nil)
+        #expect(!refreshed.isStatutoryRestDay)
+    }
+
+    @Test func testDisablingSubscribedCalendarRemovesItsHolidayLabels() throws {
+        let date: Date = .make(year: 2024, month: 9, day: 17)
+        calendarService.m_events = [.make(
+            start: date, end: .make(year: 2024, month: 9, day: 18), title: "中秋节假期", isAllDay: true,
+            calendar: .make(id: "1", title: "中国大陆节假日")
+        )]
+        calendarsSubject.onNext(["1"])
+        dateSubject.onNext(date)
+        #expect(lastValue?.first { $0.inMonth && $0.text == "17" }?.holidayName == "中秋")
+        calendarsSubject.onNext(["2"])
+        let disabled = try #require(lastValue?.first { $0.inMonth && $0.text == "17" })
+        #expect(disabled.holidayName == nil)
+        #expect(!disabled.isStatutoryRestDay)
+    }
+
+    @Test func testTimeZoneChangeRebuildsGridAndHolidayDates() throws {
+        dateProvider.now = .make(year: 2027, month: 9, day: 15, hour: 12)
+        dateSubject.onNext(dateProvider.now)
+        var fetchStart: Date?
+        calendarService.spyEventsObservable.bind { fetchStart = $0.start }.disposed(by: disposeBag)
+
+        dateProvider.m_calendar.timeZone = TimeZone(identifier: "Pacific/Auckland")!
+        dateProvider.notifyCalendarUpdated()
+        let cell = try #require(lastValue?.first { $0.inMonth && $0.text == "15" })
+        #expect(cell.date == .make(year: 2027, month: 9, day: 15, timeZone: dateProvider.calendar.timeZone))
+        #expect(cell.holidayName == "中秋")
+        #expect(cell.isStatutoryRestDay)
+        #expect(lastValue?.first(where: \.isToday)?.text == "16")
+        #expect(fetchStart == .make(year: 2026, month: 12, day: 25, timeZone: dateProvider.calendar.timeZone))
     }
 
     @Test func testCombinedTextScaling() {
@@ -460,12 +545,14 @@ class CalendarViewModelTests {
 
         dateProvider.m_calendar.timeZone = timeZone
         dateProvider.now = .make(year: 2021, month: 1, day: 1, hour: 23, timeZone: timeZone)
+        dateProvider.notifyCalendarUpdated()
 
         dateSubject.onNext(dateProvider.now)
 
         #expect(lastValue?.firstIndex(where: \.isToday) == 5)
 
         dateProvider.m_calendar.timeZone = .utc
+        dateProvider.notifyCalendarUpdated()
 
         dateSubject.onNext(dateProvider.now)
 

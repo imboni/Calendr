@@ -37,6 +37,7 @@ class MockMainViewController: MainViewController {
             autoUpdater: MockAutoUpdater(),
             workspace: MockWorkspaceServiceProvider(),
             calendarService: MockCalendarServiceProvider(dateProvider: dateProvider),
+            holidayProvider: MockMainlandHolidayProvider(),
             geocoder: MockGeocodeServiceProvider(),
             weatherService: MockWeatherServiceProvider(),
             dateProvider: dateProvider,

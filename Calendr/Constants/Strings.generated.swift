@@ -223,6 +223,36 @@ internal enum Strings {
       internal static let singular = Strings.tr("Localizable", "formatter.reminders.singular", fallback: "1 reminder")
     }
   }
+  internal enum HolidaySync {
+    /// Auto-sync
+    internal static let automatic = Strings.tr("Localizable", "holiday_sync.automatic", fallback: "Auto-sync")
+    /// Holidays through %@
+    internal static func available(_ p1: Any) -> String {
+      return Strings.tr("Localizable", "holiday_sync.available", String(describing: p1), fallback: "Holidays through %@")
+    }
+    /// Last check: %@
+    internal static func checked(_ p1: Any) -> String {
+      return Strings.tr("Localizable", "holiday_sync.checked", String(describing: p1), fallback: "Last check: %@")
+    }
+    /// Checking…
+    internal static let checking = Strings.tr("Localizable", "holiday_sync.checking", fallback: "Checking…")
+    /// Checks hourly while running and after launch/wake. Dates are verified against the State Council notice. Existing verified data is kept on failure. Timing depends on source publication and connectivity.
+    internal static let explanation = Strings.tr("Localizable", "holiday_sync.explanation", fallback: "Checks hourly while running and after launch/wake. Dates are verified against the State Council notice. Existing verified data is kept on failure. Timing depends on source publication and connectivity.")
+    /// Sync failed
+    internal static let failed = Strings.tr("Localizable", "holiday_sync.failed", fallback: "Sync failed")
+    /// Verification failed; keeping existing data
+    internal static let invalid = Strings.tr("Localizable", "holiday_sync.invalid", fallback: "Verification failed; keeping existing data")
+    /// No published schedule received yet
+    internal static let pending = Strings.tr("Localizable", "holiday_sync.pending", fallback: "No published schedule received yet")
+    /// Sync
+    internal static let refresh = Strings.tr("Localizable", "holiday_sync.refresh", fallback: "Sync")
+    /// Source unavailable; keeping existing data
+    internal static let unavailable = Strings.tr("Localizable", "holiday_sync.unavailable", fallback: "Source unavailable; keeping existing data")
+    /// Confirmed years: %@
+    internal static func years(_ p1: Any) -> String {
+      return Strings.tr("Localizable", "holiday_sync.years", String(describing: p1), fallback: "Confirmed years: %@")
+    }
+  }
   internal enum MapBlackList {
     /// Hide map if location contains any of these words
     internal static let headline = Strings.tr("Localizable", "map_black_list.headline", fallback: "Hide map if location contains any of these words")

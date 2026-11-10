@@ -8,7 +8,7 @@
 
 import Foundation
 
-private let chineseCalendar = Calendar(identifier: .chinese)
+private let chineseCalendar = Calendar(identifier: .chinese).with(timeZone: .shanghai)
 
 /// Format a Gregorian date as a Chinese lunar date string.
 /// Returns the lunar day in Chinese numerals (初一、初二、etc.) or month name (正月、二月、etc.) on the first day of the lunar month.
@@ -21,7 +21,8 @@ struct ChineseLunarDate: Equatable {
 
 extension ChineseLunarDate {
 
-    init?(from date: Date) {
+    init?(from date: Date, calendar: Calendar) {
+        guard let date = chineseCalendarDate(for: date, calendar: calendar) else { return nil }
         let components = chineseCalendar.dateComponents([.year, .month, .day, .isLeapMonth], from: date)
 
         guard let month = components.month, let day = components.day else {

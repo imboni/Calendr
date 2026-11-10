@@ -33,7 +33,7 @@ struct BoniChineseCalendarCellPlugin: CalendarCellPlugin {
         }
 
         // Then solar terms (independent toggle in this edition)
-        if showSolarTerms, let solarTerm = ChineseSolarTerm(from: date) {
+        if showSolarTerms, let solarTerm = ChineseSolarTerm(from: date, calendar: calendar) {
             text = solarTerm.text
             textColor = .systemBrown.withAlphaComponent(0.85)
             font = .systemFont(ofSize: 9, weight: .regular)
@@ -41,7 +41,7 @@ struct BoniChineseCalendarCellPlugin: CalendarCellPlugin {
         }
 
         // Finally lunar date
-        if showLunarCalendar, let lunarDate = ChineseLunarDate(from: date) {
+        if showLunarCalendar, let lunarDate = ChineseLunarDate(from: date, calendar: calendar) {
             text = lunarDate.text
             let isMonthStart = lunarDate.isMonthStart
             textColor = isMonthStart ? .labelColor : .secondaryLabelColor
